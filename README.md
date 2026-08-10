@@ -8,7 +8,7 @@ Dashboard interactivo del Mundial FIFA 2026 construido con **Python, SQLite, Str
 ![Plotly](https://img.shields.io/badge/Plotly-5.18%2B-3F4F75?logo=plotly&logoColor=white)
 
 [![CI](https://github.com/alvarosalinaso/worldcup-2026/actions/workflows/ci.yml/badge.svg)](https://github.com/alvarosalinaso/worldcup-2026/actions/workflows/ci.yml)
-[![codecov](https://img.shields.io/badge/coverage-tests-blue)](#tests)
+[![Coverage gate](https://img.shields.io/badge/coverage-%E2%89%A580%25-green)](#tests)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Contiene datos reales del torneo (España campeón, Mbappé máximo goleador con 10 goles, récord de asistencia de 6.8M).
@@ -72,7 +72,7 @@ pip install -r requirements-dev.txt
 pytest --cov=. --cov-report=term-missing
 ```
 
-La suite construye una base SQLite **temporal y aislada** por test (vía `seed_data`) y valida las 16 consultas analíticas: ranking de grupos, bracket, goleadores (Mbappé primero), asistencia, ocupación de estadios, camino del campeón, debutantes y filtros combinados.
+La suite construye una base SQLite **temporal y aislada** por test (vía `seed_data`) y valida las 16 consultas analíticas: ranking de grupos, bracket, goleadores (Mbappé primero), asistencia, ocupación de estadios, camino del campeón, debutantes y filtros combinados. El CI exige **≥80% de cobertura** (`--cov-fail-under`).
 
 ## Estructura del proyecto
 

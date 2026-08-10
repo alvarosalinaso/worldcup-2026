@@ -1,5 +1,5 @@
 -- 2026 FIFA World Cup - Database Schema
--- Diseño normalizado (6 tablas) para el dashboard interactivo
+-- Diseño normalizado (7 tablas) para el dashboard interactivo
 
 CREATE TABLE IF NOT EXISTS stadiums (
     stadium_id INTEGER PRIMARY KEY AUTOINCREMENT,

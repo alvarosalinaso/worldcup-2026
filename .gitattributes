@@ -1,0 +1,5 @@
+# Normalizar saltos de línea a LF en texto, mantener binarios intactos
+* text=auto
+
+*.png binary
+*.jpg binary
