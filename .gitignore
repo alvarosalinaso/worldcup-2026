@@ -1,6 +1,12 @@
 data/*.db
+data/*.db-journal
 __pycache__/
-*.pyc
+*.py[cod]
 .venv/
 env/
 *.log
+.coverage
+htmlcov/
+.pytest_cache/
+.ruff_cache/
+.DS_Store
