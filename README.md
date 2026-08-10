@@ -2,18 +2,37 @@
 
 Dashboard interactivo del Mundial FIFA 2026 construido con **Python, SQLite, Streamlit y Plotly**.
 
+![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB?logo=python&logoColor=white)
+![Streamlit](https://img.shields.io/badge/Streamlit-1.28%2B-FF4B4B?logo=streamlit&logoColor=white)
+![SQLite](https://img.shields.io/badge/SQLite-3-003B57?logo=sqlite&logoColor=white)
+![Plotly](https://img.shields.io/badge/Plotly-5.18%2B-3F4F75?logo=plotly&logoColor=white)
+
+[![CI](https://github.com/alvarosalinaso/worldcup-2026/actions/workflows/ci.yml/badge.svg)](https://github.com/alvarosalinaso/worldcup-2026/actions/workflows/ci.yml)
+[![codecov](https://img.shields.io/badge/coverage-tests-blue)](#tests)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 Contiene datos reales del torneo (España campeón, Mbappé máximo goleador con 10 goles, récord de asistencia de 6.8M).
 
-##  Stack
+## Índice
+
+1. [Stack](#-stack)
+2. [Funcionalidades](#-funcionalidades)
+3. [Arquitectura](#-arquitectura)
+4. [Cómo ejecutar](#-cómo-ejecutar)
+5. [Tests](#-tests)
+6. [Estructura del proyecto](#-estructura-del-proyecto)
+7. [Datos incluidos](#-datos-incluidos)
+
+## Stack
 
 | Capa | Tecnología |
 |------|-----------|
-| Data | SQLite (normalizado, 6 tablas con FK) |
+| Data | SQLite (normalizado, 7 tablas con FK) |
 | Backend | Python + Pandas |
 | Visualización | Plotly Express |
 | Dashboard | Streamlit |
 
-##  Funcionalidades
+## Funcionalidades
 
 - **Tournament Overview** — métricas clave, medallero, awards, mapa de las 16 sedes
 - **Group Stage** — tabla de los 12 grupos con indicador de clasificación
@@ -24,7 +43,19 @@ Contiene datos reales del torneo (España campeón, Mbappé máximo goleador con
 - **Champion Path** — el camino de España al título con stats
 - **Surprises & Debutants** — rendimiento de debutantes (Cape Verde, Curaçao, Jordan, Uzbekistán), ranking completo de 48 equipos, relación FIFA Rank vs rendimiento
 
-##  Cómo ejecutar
+## Arquitectura
+
+```
+src/
+├── schema.sql      # Esquema normalizado (7 tablas + FK)
+├── seed_data.py    # Población con datos reales del torneo
+├── queries.py      # 16 queries analíticas con Pandas (conexión gestionada)
+└── app.py          # Dashboard Streamlit (9 secciones)
+```
+
+El acceso a datos está separado de la UI: `queries.py` encapsula las consultas SQL y cierra las conexiones mediante un context manager, mientras que `app.py` consume DataFrames para la visualización.
+
+## Cómo ejecutar
 
 ```bash
 pip install -r requirements.txt
@@ -32,22 +63,37 @@ python src/seed_data.py
 streamlit run src/app.py
 ```
 
-##  Estructura del proyecto
+> La base de datos se crea automáticamente en `data/worldcup.db` si no existe. También puedes apuntar a otra ruta con la variable de entorno `WC2026_DB`.
+
+## Tests
+
+```bash
+pip install -r requirements-dev.txt
+pytest --cov=. --cov-report=term-missing
+```
+
+La suite construye una base SQLite **temporal y aislada** por test (vía `seed_data`) y valida las 16 consultas analíticas: ranking de grupos, bracket, goleadores (Mbappé primero), asistencia, ocupación de estadios, camino del campeón, debutantes y filtros combinados.
+
+## Estructura del proyecto
 
 ```
 worldcup-2026/
 ├── src/
-│   ├── schema.sql        # Esquema de base de datos (6 tablas)
+│   ├── schema.sql        # Esquema de base de datos (7 tablas)
 │   ├── seed_data.py      # Población con datos reales del torneo
-│   ├── queries.py        # 17 queries analíticas con Pandas
+│   ├── queries.py        # 16 queries analíticas con Pandas
 │   └── app.py            # Dashboard Streamlit (9 secciones)
 ├── data/
-│   └── worldcup.db       # Base de datos SQLite
+│   └── worldcup.db       # Base de datos SQLite (autogenerada)
+├── tests/
+│   └── test_queries.py   # Cobertura de seed_data y queries
+├── .github/workflows/ci.yml  # CI: ruff + pytest (3.9–3.13)
 ├── requirements.txt
+├── requirements-dev.txt
 └── README.md
 ```
 
-##  Datos incluidos
+## Datos incluidos
 
 - 48 equipos con confederación, ranking FIFA, indicador de debut
 - 16 sedes con ciudad, país, capacidad, región
@@ -55,7 +101,5 @@ worldcup-2026/
 - 104 partidos con marcador, sede, asistencia
 - 285 goles registrados con goleador y equipo
 - Awards: Golden Ball, Golden Boot, Golden Glove, Fair Play
-
-## 
 
 **Autor:** Álvaro Salinas — Proyecto de portafolio como Data Analyst
