@@ -10,6 +10,7 @@ Dashboard interactivo del Mundial FIFA 2026 construido con **Python, SQLite, Str
 [![CI](https://github.com/alvarosalinaso/worldcup-2026/actions/workflows/ci.yml/badge.svg)](https://github.com/alvarosalinaso/worldcup-2026/actions/workflows/ci.yml)
 [![Coverage gate](https://img.shields.io/badge/coverage-%E2%89%A580%25-green)](#tests)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Live App](https://img.shields.io/badge/Live-Dashboard-FF4B4B?logo=streamlit&logoColor=white)](https://worldcup-2026.streamlit.app)
 
 Contiene datos reales del torneo (España campeón, Mbappé máximo goleador con 10 goles, récord de asistencia de 6.8M).
 
