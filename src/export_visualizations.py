@@ -5,7 +5,6 @@ external visualization tools (Datawrapper, Flourish, Observable).
 """
 
 import csv
-import os
 import sqlite3
 from pathlib import Path
 from typing import Optional
@@ -41,8 +40,13 @@ def _write_csv(filename: str, headers: list[str], rows: list[tuple]) -> Path:
 
 def _stage_label(stage: int) -> str:
     labels = {
-        1: "Group Stage", 2: "Round of 32", 3: "Round of 16",
-        4: "Quarterfinal", 5: "Semifinal", 6: "Third Place", 7: "Final",
+        1: "Group Stage",
+        2: "Round of 32",
+        3: "Round of 16",
+        4: "Quarterfinal",
+        5: "Semifinal",
+        6: "Third Place",
+        7: "Final",
     }
     return labels.get(stage, f"Stage {stage}")
 
@@ -69,8 +73,14 @@ def export_asistencia_sedes(conn: sqlite3.Connection) -> Path:
     )
     rows = cur.fetchall()
     headers = [
-        "stadium", "city", "country", "capacity",
-        "total_matches", "total_attendance", "avg_attendance", "occupancy_rate",
+        "stadium",
+        "city",
+        "country",
+        "capacity",
+        "total_matches",
+        "total_attendance",
+        "avg_attendance",
+        "occupancy_rate",
     ]
     path = _write_csv("dw_asistencia_sedes.csv", headers, rows)
     print(f"  -> {path.name} ({len(rows)} stadiums)")
@@ -176,7 +186,15 @@ def export_observable_bracket(conn: sqlite3.Connection) -> Path:
                 winner = ""
         rows.append((rnd, mnum, home_display, away_display, hs, as_, winner))
 
-    headers = ["round", "match_number", "home_team", "away_team", "home_score", "away_score", "winner"]
+    headers = [
+        "round",
+        "match_number",
+        "home_team",
+        "away_team",
+        "home_score",
+        "away_score",
+        "winner",
+    ]
     path = _write_csv("observable_bracket.csv", headers, rows)
     print(f"  -> {path.name} ({len(rows)} matches)")
     return path
@@ -283,7 +301,9 @@ def main(db_path: Optional[str] = None) -> None:
 
     if not target.exists():
         print(f"Database not found at {target}")
-        print("Run 'python src/seed_data.py' first to create and populate the database.")
+        print(
+            "Run 'python src/seed_data.py' first to create and populate the database."
+        )
         return
 
     _ensure_export_dir()
