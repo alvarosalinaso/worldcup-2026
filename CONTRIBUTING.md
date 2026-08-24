@@ -2,7 +2,7 @@
 
 ¡Gracias por tu interés en contribuir a **worldcup-2026-dashboard**!
 
-Este proyecto es un dashboard interactivo del Mundial FIFA 2026 construido con Python, SQLite, Streamlit y Plotly.
+Este proyecto es un dashboard interactivo del Mundial FIFA 2026 construido con Python, SQLite y Plotly.
 
 ## Entorno de desarrollo
 
@@ -17,12 +17,6 @@ pip install -r requirements.txt -r requirements-dev.txt
 
 ```bash
 python -m src.seed_data
-```
-
-## Ejecutar la app
-
-```bash
-streamlit run src/app.py
 ```
 
 ## Tests y calidad
