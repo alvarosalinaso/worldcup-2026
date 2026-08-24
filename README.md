@@ -1,16 +1,15 @@
-#  FIFA World Cup 2026 — Interactive Dashboard
+# FIFA World Cup 2026 — Interactive Dashboard
 
-Dashboard interactivo del Mundial FIFA 2026 construido con **Python, SQLite, Streamlit y Plotly**.
+Dashboard interactivo del Mundial FIFA 2026 construido con **Python, SQLite, Plotly.js y Vite**.
 
 ![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB?logo=python&logoColor=white)
-![Streamlit](https://img.shields.io/badge/Streamlit-1.28%2B-FF4B4B?logo=streamlit&logoColor=white)
 ![SQLite](https://img.shields.io/badge/SQLite-3-003B57?logo=sqlite&logoColor=white)
-![Plotly](https://img.shields.io/badge/Plotly-5.18%2B-3F4F75?logo=plotly&logoColor=white)
+![Plotly.js](https://img.shields.io/badge/Plotly.js-3.x-3F4F75?logo=plotly&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-6.x-646CFF?logo=vite&logoColor=white)
 
 [![CI](https://github.com/alvarosalinaso/worldcup-2026/actions/workflows/ci.yml/badge.svg)](https://github.com/alvarosalinaso/worldcup-2026/actions/workflows/ci.yml)
 [![Coverage gate](https://img.shields.io/badge/coverage-%E2%89%A580%25-green)](#tests)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Live App](https://img.shields.io/badge/Live-Dashboard-FF4B4B?logo=streamlit&logoColor=white)](https://worldcup-2026.streamlit.app)
 
 Contiene datos reales del torneo (España campeón, Mbappé máximo goleador con 10 goles, récord de asistencia de 6.8M).
 
@@ -30,8 +29,8 @@ Contiene datos reales del torneo (España campeón, Mbappé máximo goleador con
 |------|-----------|
 | Data | SQLite (normalizado, 7 tablas con FK) |
 | Backend | Python + Pandas |
-| Visualización | Plotly Express |
-| Dashboard | Streamlit |
+| Visualización | **Plotly.js** (frontend), Plotly Express (Python) |
+| Frontend | Vite + Vanilla JS (Portfolio Web) |
 
 ## Funcionalidades
 
@@ -51,20 +50,24 @@ src/
 ├── schema.sql      # Esquema normalizado (7 tablas + FK)
 ├── seed_data.py    # Población con datos reales del torneo
 ├── queries.py      # 16 queries analíticas con Pandas (conexión gestionada)
-└── app.py          # Dashboard Streamlit (9 secciones)
+└── export_json.py  # Exporta datos a portfolio-web/public/data/
 ```
 
-El acceso a datos está separado de la UI: `queries.py` encapsula las consultas SQL y cierra las conexiones mediante un context manager, mientras que `app.py` consume DataFrames para la visualización.
+El acceso a datos está separado de la UI: `queries.py` encapsula las consultas SQL y cierra las conexiones mediante un context manager, mientras que `export_json.py` serializa DataFrames para consumo en Portfolio Web (Plotly.js).
 
 ## Cómo ejecutar
 
 ```bash
 pip install -r requirements.txt
 python src/seed_data.py
-streamlit run src/app.py
+python src/export_json.py
 ```
 
 > La base de datos se crea automáticamente en `data/worldcup.db` si no existe. También puedes apuntar a otra ruta con la variable de entorno `WC2026_DB`.
+
+## Ver Dashboard Interactivo
+
+**[https://alvarosalinaso.github.io/portfolio-web/](https://alvarosalinaso.github.io/portfolio-web/)** → Tab **"🌍 World Cup 2026 Analysis"** (pendiente de integración completa)
 
 ## Tests
 
@@ -83,7 +86,7 @@ worldcup-2026/
 │   ├── schema.sql        # Esquema de base de datos (7 tablas)
 │   ├── seed_data.py      # Población con datos reales del torneo
 │   ├── queries.py        # 16 queries analíticas con Pandas
-│   └── app.py            # Dashboard Streamlit (9 secciones)
+│   └── export_json.py    # Exporta JSON para Portfolio Web
 ├── data/
 │   └── worldcup.db       # Base de datos SQLite (autogenerada)
 ├── tests/
