@@ -1,0 +1,16 @@
+round,match,team_home,team_away,score_home,score_away,winner
+Round of 16,M1,Brazil,Argentina,1,0,Brazil
+Round of 16,M2,France,Spain,2,1,France
+Round of 16,M3,England,Belgium,2,1,England
+Round of 16,M4,Portugal,Netherlands,1,0,Portugal
+Round of 16,M5,Germany,Italy,3,0,Germany
+Round of 16,M6,Japan,Morocco,1,0,Japan
+Round of 16,M7,USA,Croatia,2,1,USA
+Round of 16,M8,Senegal,Uruguay,0,1,Uruguay
+Quarter-finals,M9,Brazil,France,3,1,Brazil
+Quarter-finals,M10,England,Portugal,3,2,England
+Quarter-finals,M11,Germany,Japan,0,1,Japan
+Quarter-finals,M12,USA,Uruguay,3,2,USA
+Semi-finals,M13,Brazil,England,2,1,Brazil
+Semi-finals,M14,Japan,USA,1,2,USA
+Third-place play-off,M15,Brazil,USA,3,2,Brazil

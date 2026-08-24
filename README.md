@@ -125,6 +125,30 @@ Mapa interactivo de las 16 sedes con popups de capacidad, región y partidos alb
 
 ---
 
+## Visual Analytics
+
+Interactividad multinivel para exploración de datos y presentación ejecutiva.
+
+<details>
+<summary><strong>Datawrapper — Gráfico interactivo</strong></summary>
+
+<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;max-width:100%;">
+  <iframe src="https://datawrapper.dwcdn.net/HLIEG/" title="Densidad de Asistencia por Sede — World Cup 2026" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" loading="lazy" allowfullscreen></iframe>
+</div>
+</details>
+
+<details>
+<summary><strong>Observable — Notebook interactivo</strong></summary>
+
+<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;max-width:100%;">
+  <iframe src="https://observablehq.com/@alvarosalinaso/worldcup-bracket" title="Bracket Predictivo — World Cup 2026" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" loading="lazy" allowfullscreen></iframe>
+</div>
+</details>
+
+**Hallazgos clave**: El análisis de asistencia predice sedes con mayor densidad de público en ciudades con estadios de +50.000 capacidad.
+
+---
+
 ## 5. Reproducibilidad y Entorno Técnico
 
 ### 5.1 Instalación
