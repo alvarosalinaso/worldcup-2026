@@ -219,7 +219,32 @@ La suite de tests construye una base SQLite temporal e aislada por caso de prueb
 
 ---
 
-## 6. Estructura del Repositorio
+## 6. Análisis Avanzado (Scripts Adicionales)
+
+Cinco scripts de análisis estadístico y predictivo en `src/`:
+
+| Script | Método | Descripción |
+|--------|--------|-------------|
+| `clustering_analysis.py` | K-Means + Silhouette | Clustering de sedes por capacidad, asistencia y ocupación |
+| `forecasting.py` | ARIMA | Forecasting de asistencia por sede (próximas 3 observaciones) |
+| `ranking_analysis.py` | Z-score + Composite Score | Ranking compuesto de sedes con normalización estadística |
+| `optimization_analysis.py` | Utilización capacidad/demanda | Clasificación de sedes: óptimo / subutilizado / sobredemanda |
+| `sensitivity_analysis.py` | Monte Carlo (N=1000) | Análisis de sensibilidad con percentiles P5–P95 |
+
+Ejecución individual:
+```bash
+python src/clustering_analysis.py
+python src/forecasting.py
+python src/ranking_analysis.py
+python src/optimization_analysis.py
+python src/sensitivity_analysis.py
+```
+
+Los resultados se exportan a `data/export/` como archivos JSON.
+
+---
+
+## 7. Estructura del Repositorio
 
 ```
 worldcup-2026/
@@ -227,6 +252,11 @@ worldcup-2026/
 │   ├── schema.sql          # DDL del esquema (7 tablas)
 │   ├── seed_data.py        # Población con datos reales del torneo
 │   ├── queries.py          # 16 consultas analíticas con Pandas
+│   ├── clustering_analysis.py   # K-Means clustering de sedes
+│   ├── forecasting.py           # ARIMA forecasting de asistencia
+│   ├── ranking_analysis.py      # Scoring compuesto estadístico
+│   ├── optimization_analysis.py # Optimización capacidad/demanda
+│   ├── sensitivity_analysis.py  # Monte Carlo sensitivity
 │   └── export_json.py      # Exportación JSON para Portfolio Web
 ├── data/
 │   └── worldcup.db         # Base de datos SQLite (autogenerada)
@@ -241,7 +271,7 @@ worldcup-2026/
 
 ---
 
-## 7. Datos Incluidos
+## 8. Datos Incluidos
 
 - **48 selecciones** con confederación, ranking FIFA y indicador de debut
 - **16 sedes** con ciudad, país, capacidad y región
