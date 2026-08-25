@@ -323,6 +323,31 @@ def main(db_path: Optional[str] = None) -> None:
         print("\nGenerating embed snippets:")
         generate_embed_snippets()
         print(f"\nAll exports written to {EXPORT_DIR}")
+
+        # Advanced analytics
+        from clustering_analysis import run_clustering
+        run_clustering()
+
+        from forecasting import run_forecasting
+        run_forecasting()
+
+        from ranking_analysis import run_ranking
+        run_ranking()
+
+        from optimization_analysis import run_optimization
+        run_optimization()
+
+        from sensitivity_analysis import run_sensitivity
+        run_sensitivity()
+
+        # Statistical tests
+        from statistical_tests import run_statistical_tests
+        run_statistical_tests()
+
+        # Generate executive tables
+        from generate_tables import generate as generate_exec_tables
+        generate_exec_tables()
+
     except sqlite3.Error as exc:
         print(f"Query error: {exc}")
     finally:
