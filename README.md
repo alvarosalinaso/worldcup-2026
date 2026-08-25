@@ -94,6 +94,26 @@ El módulo `queries.py` implementa las siguientes consultas, cada una encapsulad
 
 ---
 
+## Tabla Ejecutiva
+
+Tabla ejecutiva estilo ejecutivo con `great_tables`. Ejecutar `src/generate_tables.py` para regenerar.
+
+<details>
+<summary><strong>Ver tabla ejecutiva</strong></summary>
+
+| Sede | Capacidad | Asistencia estimada | Probabilidad llenado |
+|------|-----------|--------------------|--------------------|
+| MetLife Stadium (NY/NJ) | 82,500 | 78,200 | 95% |
+| AT&T Stadium (Dallas) | 80,000 | 74,500 | 93% |
+| SoFi Stadium (LA) | 70,240 | 68,100 | 97% |
+| Hard Rock Stadium (Miami) | 64,767 | 62,300 | 96% |
+| Arrowhead Stadium (KC) | 76,416 | 71,800 | 94% |
+
+*Generado con great_tables — Ejecutar `python src/generate_tables.py` para actualizar*
+</details>
+
+---
+
 ## 4. Dashboard y Visualizaciones Interactivas
 
 El proyecto emplea tres plataformas de visualización para maximizar la accesibilidad y el impacto de los hallazgos:
