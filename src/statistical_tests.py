@@ -1,17 +1,21 @@
 """Tests estadisticos para World Cup 2026."""
+
 import json
 from pathlib import Path
 
 try:
-    import pandas as pd
     import numpy as np
+    import pandas as pd
     from scipy import stats
+
     SCIPY_AVAILABLE = True
 except ImportError:
     SCIPY_AVAILABLE = False
 
 
-def run_statistical_tests(data_dir: Path = Path("."), output_dir: Path = Path("data/export")) -> dict:
+def run_statistical_tests(
+    data_dir: Path = Path("."), output_dir: Path = Path("data/export")
+) -> dict:
     if not SCIPY_AVAILABLE:
         return {}
 

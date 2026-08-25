@@ -2,20 +2,24 @@
 Forecasting de asistencia y demanda para World Cup 2026.
 ARIMA + Holt-Winters para predecir patron de asistencia.
 """
+
 import json
 from pathlib import Path
 
 try:
-    import pandas as pd
     import numpy as np
+    import pandas as pd
     from statsmodels.tsa.arima.model import ARIMA
-    from statsmodels.tsa.holtwinters import ExponentialSmoothing
+    from statsmodels.tsa.holtwinters import ExponentialSmoothing  # noqa: F401
+
     AVAILABLE = True
 except ImportError:
     AVAILABLE = False
 
 
-def run_forecasting(data_dir: Path = Path("."), output_dir: Path = Path("data/export")) -> dict:
+def run_forecasting(
+    data_dir: Path = Path("."), output_dir: Path = Path("data/export")
+) -> dict:
     if not AVAILABLE:
         print("[FORECAST] statsmodels no instalado")
         return {}
@@ -43,7 +47,9 @@ def run_forecasting(data_dir: Path = Path("."), output_dir: Path = Path("data/ex
                 "aic": round(float(fit.aic), 2),
                 "mean": round(float(ts.mean()), 2),
             }
-            print(f"[FORECAST] {col}: mean={ts.mean():.1f}, forecast={[round(float(v), 1) for v in forecast]}")
+            print(
+                f"[FORECAST] {col}: mean={ts.mean():.1f}, forecast={[round(float(v), 1) for v in forecast]}"
+            )
         except Exception as e:
             print(f"[FORECAST] {col} error: {e}")
 

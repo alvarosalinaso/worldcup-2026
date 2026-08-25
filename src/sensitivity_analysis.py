@@ -2,18 +2,24 @@
 Analisis de sensibilidad — Impacto de variaciones en parametros clave.
 Monte Carlo simulation para escenarios de asistencia.
 """
+
 import json
 from pathlib import Path
 
 try:
-    import pandas as pd
     import numpy as np
+    import pandas as pd
+
     AVAILABLE = True
 except ImportError:
     AVAILABLE = False
 
 
-def run_sensitivity(data_dir: Path = Path("."), output_dir: Path = Path("data/export"), n_simulations: int = 1000) -> dict:
+def run_sensitivity(
+    data_dir: Path = Path("."),
+    output_dir: Path = Path("data/export"),
+    n_simulations: int = 1000,
+) -> dict:
     if not AVAILABLE:
         return {}
 
@@ -47,9 +53,13 @@ def run_sensitivity(data_dir: Path = Path("."), output_dir: Path = Path("data/ex
             "p25": round(float(np.percentile(simulations, 25)), 2),
             "p75": round(float(np.percentile(simulations, 75)), 2),
             "p95": round(float(np.percentile(simulations, 95)), 2),
-            "probability_above_baseline": round(float(np.mean(simulations > mean_val)), 3),
+            "probability_above_baseline": round(
+                float(np.mean(simulations > mean_val)), 3
+            ),
         }
-        print(f"[SENS] {col}: baseline={mean_val:.1f}, P(above)={results[col]['probability_above_baseline']:.2%}")
+        print(
+            f"[SENS] {col}: baseline={mean_val:.1f}, P(above)={results[col]['probability_above_baseline']:.2%}"
+        )
 
     output_dir.mkdir(parents=True, exist_ok=True)
     with open(output_dir / "sensitivity_results.json", "w", encoding="utf-8") as f:

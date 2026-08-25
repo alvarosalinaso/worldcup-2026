@@ -2,21 +2,25 @@
 Clusterizacion de sedes Mundial 2026 por caracteristicas.
 K-Means + silhouette + profiles.
 """
+
 import json
 from pathlib import Path
 
 try:
-    import pandas as pd
     import numpy as np
+    import pandas as pd
     from sklearn.cluster import KMeans
-    from sklearn.preprocessing import StandardScaler
     from sklearn.metrics import silhouette_score
+    from sklearn.preprocessing import StandardScaler
+
     AVAILABLE = True
 except ImportError:
     AVAILABLE = False
 
 
-def run_clustering(data_dir: Path = Path("."), output_dir: Path = Path("data/export")) -> dict:
+def run_clustering(
+    data_dir: Path = Path("."), output_dir: Path = Path("data/export")
+) -> dict:
     if not AVAILABLE:
         return {}
 

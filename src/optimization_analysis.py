@@ -2,18 +2,22 @@
 Optimizacion de asignacion de partidos a sedes.
 Analisis de capacidad vs demanda y asignacion optima.
 """
+
 import json
 from pathlib import Path
 
 try:
-    import pandas as pd
     import numpy as np
+    import pandas as pd
+
     AVAILABLE = True
 except ImportError:
     AVAILABLE = False
 
 
-def run_optimization(data_dir: Path = Path("."), output_dir: Path = Path("data/export")) -> dict:
+def run_optimization(
+    data_dir: Path = Path("."), output_dir: Path = Path("data/export")
+) -> dict:
     if not AVAILABLE:
         return {}
 
@@ -35,17 +39,31 @@ def run_optimization(data_dir: Path = Path("."), output_dir: Path = Path("data/e
 
         # Classification
         df["status"] = df["utilization_pct"].apply(
-            lambda x: "OPTIMO" if 85 <= x <= 100 else "SUBUTILIZADO" if x < 85 else "SOBREDEMANDA"
+            lambda x: (
+                "OPTIMO"
+                if 85 <= x <= 100
+                else "SUBUTILIZADO"
+                if x < 85
+                else "SOBREDEMANDA"
+            )
         )
 
     results = {
         "n_sedes": len(df),
         "utilization_stats": {
-            "mean": round(df["utilization_pct"].mean(), 1) if "utilization_pct" in df.columns else 0,
-            "min": round(df["utilization_pct"].min(), 1) if "utilization_pct" in df.columns else 0,
-            "max": round(df["utilization_pct"].max(), 1) if "utilization_pct" in df.columns else 0,
+            "mean": round(df["utilization_pct"].mean(), 1)
+            if "utilization_pct" in df.columns
+            else 0,
+            "min": round(df["utilization_pct"].min(), 1)
+            if "utilization_pct" in df.columns
+            else 0,
+            "max": round(df["utilization_pct"].max(), 1)
+            if "utilization_pct" in df.columns
+            else 0,
         },
-        "status_distribution": df["status"].value_counts().to_dict() if "status" in df.columns else {},
+        "status_distribution": df["status"].value_counts().to_dict()
+        if "status" in df.columns
+        else {},
         "recommendations": [],
     }
 
@@ -55,9 +73,13 @@ def run_optimization(data_dir: Path = Path("."), output_dir: Path = Path("data/e
         overdemand = df[df["status"] == "SOBREDEMANDA"]
 
         if len(underutilized) > 0:
-            results["recommendations"].append(f"{len(underutilized)} sedes subutilizadas - considerar redistribucion")
+            results["recommendations"].append(
+                f"{len(underutilized)} sedes subutilizadas - considerar redistribucion"
+            )
         if len(overdemand) > 0:
-            results["recommendations"].append(f"{len(overdemand)} sedes sobredemandadas - anadir capacidad o sesiones")
+            results["recommendations"].append(
+                f"{len(overdemand)} sedes sobredemandadas - anadir capacidad o sesiones"
+            )
 
     output_dir.mkdir(parents=True, exist_ok=True)
     with open(output_dir / "optimization_results.json", "w", encoding="utf-8") as f:
