@@ -282,4 +282,12 @@ worldcup-2026/
 
 ---
 
-**Autor:** Álvaro Salinas — Proyecto de portafolio en análisis de datos deportivos (nivel postgrado)
+## Related projects
+
+- [Manchester United Analysis](https://github.com/alvarosalinaso/manchester-united-analisis) — Causal analysis of managerial changes
+- [Passing Network Analysis](https://github.com/alvarosalinaso/united-passing-efficiency-24-25) — Graph analysis of Man United's passing
+- [Portfolio Web](https://github.com/alvarosalinaso/portfolio-web) — Dashboard with all projects
+
+---
+
+**Author:** Álvaro Salinas — Personal project in sports data analysis
