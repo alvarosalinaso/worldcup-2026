@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mundial 2026 - Dashboard API</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #0f0f23;
+            color: #e0e0e0;
+        }
+        .header {
+            background: linear-gradient(135deg, #1a1a3e, #0d1b2a);
+            padding: 40px 20px;
+            text-align: center;
+            border-bottom: 3px solid #d62728;
+        }
+        .header h1 {
+            font-size: 2.5rem;
+            color: #FFD700;
+        }
+        .header p { color: #8892b0; margin-top: 8px; }
+        .nav {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            padding: 15px 20px;
+            background: #1a1a2e;
+            flex-wrap: wrap;
+        }
+        .nav button {
+            background: #2a2a4a;
+            color: #e0e0e0;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+        .nav button:hover, .nav button.active {
+            background: #d62728;
+            color: white;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+        .card {
+            background: #1a1a2e;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid #2a2a4a;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .card h2 {
+            color: #FFD700;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #2a2a4a;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .stat {
+            background: linear-gradient(135deg, #16213e, #0f3460);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid #2a2a4a;
+        }
+        .stat .num { font-size: 2rem; font-weight: 800; color: #FFD700; }
+        .stat .lbl { font-size: 0.85rem; color: #8892b0; margin-top: 4px; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        th {
+            background: #2a2a4a;
+            color: #e0e0e0;
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #2a2a4a;
+        }
+        tr:hover td { background: rgba(255,255,255,0.03); }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #8892b0;
+        }
+        .footer {
+            text-align: center;
+            padding: 30px;
+            color: #555;
+            border-top: 1px solid #2a2a4a;
+        }
+        .footer a { color: #d62728; text-decoration: none; }
+        #charts { display: none; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Mundial FIFA 2026</h1>
+        <p>Dashboard con API REST - Flask + Plotly</p>
+    </div>
+
+    <div class="nav">
+        <button class="active" onclick="loadSection('overview')">Resumen</button>
+        <button onclick="loadSection('goals')">Goles</button>
+        <button onclick="loadSection('stadiums')">Estadios</button>
+        <button onclick="loadSection('teams')">Equipos</button>
+        <button onclick="loadSection('knockout')">Eliminatorias</button>
+    </div>
+
+    <div class="container" id="content">
+        <div class="loading">Cargando datos...</div>
+    </div>
+
+    <div class="footer">
+        <p>Flask API + Plotly.js | <a href="https://github.com/alvarosalinaso/worldcup-2026">GitHub</a></p>
+    </div>
+
+    <script>
+    const API = '';
+    let currentSection = 'overview';
+
+    async function fetchData(endpoint) {
+        const res = await fetch(API + endpoint);
+        return res.json();
+    }
+
+    function renderHTML(html) {
+        document.getElementById('content').innerHTML = html;
+    }
+
+    function plotlyConfig() {
+        return { displayModeBar: false, responsive: true };
+    }
+
+    const layout = {
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        font: { color: '#e0e0e0' },
+        margin: { t: 30, b: 50 },
+    };
+
+    async function loadSection(section) {
+        currentSection = section;
+        document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
+        renderHTML('<div class="loading">Cargando...</div>');
+
+        if (section === 'overview') await loadOverview();
+        else if (section === 'goals') await loadGoals();
+        else if (section === 'stadiums') await loadStadiums();
+        else if (section === 'teams') await loadTeams();
+        else if (section === 'knockout') await loadKnockout();
+    }
+
+    async function loadOverview() {
+        const data = await fetchData('/api/overview');
+        const c = data.current;
+        const h = data.history;
+
+        const years = [...h.map(r => r.year), 2026];
+        const goals = [...h.map(r => r.total_goals), c.goals];
+        const matches = [...h.map(r => r.total_matches), c.matches];
+
+        let html = `
+        <div class="stats">
+            <div class="stat"><div class="num">${c.matches}</div><div class="lbl">Partidos</div></div>
+            <div class="stat"><div class="num">${c.goals}</div><div class="lbl">Goles</div></div>
+            <div class="stat"><div class="num">48</div><div class="lbl">Selecciones</div></div>
+            <div class="stat"><div class="num">3</div><div class="lbl">Sedes</div></div>
+        </div>
+        <div class="card">
+            <h2>Evolución de goles por edición</h2>
+            <div id="chart-overview"></div>
+        </div>`;
+        renderHTML(html);
+
+        Plotly.newPlot('chart-overview', [{
+            x: years, y: goals, type: 'bar', text: goals, textposition: 'outside',
+            marker: { color: ['#888','#888','#888','#d62728'] }
+        }], { ...layout, height: 350 }, plotlyConfig());
+    }
+
+    async function loadGoals() {
+        const [rounds, conf] = await Promise.all([
+            fetchData('/api/goals-by-round'),
+            fetchData('/api/goals-by-confederation'),
+        ]);
+
+        let html = `
+        <div class="card">
+            <h2>Goles por ronda</h2>
+            <div id="chart-rounds"></div>
+        </div>
+        <div class="card">
+            <h2>Por confederación</h2>
+            <div id="chart-conf"></div>
+        </div>`;
+        renderHTML(html);
+
+        Plotly.newPlot('chart-rounds', [{
+            x: rounds.map(r => r.round), y: rounds.map(r => r.goals),
+            type: 'bar', text: rounds.map(r => r.goals), textposition: 'outside',
+            marker: { color: '#d62728' }
+        }], { ...layout, height: 400 }, plotlyConfig());
+
+        Plotly.newPlot('chart-conf', [{
+            labels: conf.map(r => r.confederation), values: conf.map(r => r.goals),
+            type: 'pie', hole: 0.3,
+        }], { ...layout, height: 400 }, plotlyConfig());
+    }
+
+    async function loadStadiums() {
+        const data = await fetchData('/api/stadiums');
+        let html = `
+        <div class="card">
+            <h2>Asistencia por estadio</h2>
+            <div id="chart-stadiums"></div>
+        </div>
+        <div class="card">
+            <h2>Detalle</h2>
+            <table>
+                <tr><th>Estadio</th><th>Ciudad</th><th>País</th><th>Capacidad</th><th>Partidos</th><th>Asist. Prom.</th><th>% Ocupación</th></tr>
+                ${data.map(r => `<tr><td>${r.name.split('(')[0].trim()}</td><td>${r.host_city}</td><td>${r.country}</td><td>${r.capacity?.toLocaleString()}</td><td>${r.matches}</td><td>${r.avg_att?.toLocaleString()}</td><td>${r.utilization}%</td></tr>`).join('')}
+            </table>
+        </div>`;
+        renderHTML(html);
+
+        const short = data.map(r => r.name.split('(')[0].trim());
+        Plotly.newPlot('chart-stadiums', [
+            { x: short, y: data.map(r => r.avg_att), type: 'bar', name: 'Asistencia', marker: { color: '#2ca02c' } },
+            { x: short, y: data.map(r => r.capacity), type: 'scatter', mode: 'lines', name: 'Capacidad', line: { color: '#d62728', dash: 'dash' } },
+        ], { ...layout, height: 450, xaxis: { tickangle: -45 } }, plotlyConfig());
+    }
+
+    async function loadTeams() {
+        const data = await fetchData('/api/teams');
+        const top16 = data.slice(0, 16);
+        let html = `
+        <div class="card">
+            <h2>Top 16 equipos</h2>
+            <div id="chart-teams"></div>
+        </div>
+        <div class="card">
+            <h2>Tabla completa</h2>
+            <div style="overflow-x:auto">
+            <table>
+                <tr><th>Equipo</th><th>Confed.</th><th>Rank FIFA</th><th>PJ</th><th>G</th><th>E</th><th>P</th><th>GF</th><th>GC</th></tr>
+                ${data.map(r => `<tr><td>${r.name}</td><td>${r.confederation}</td><td>${r.fifa_ranking}</td><td>${r.played}</td><td>${r.wins}</td><td>${r.draws}</td><td>${r.losses}</td><td>${r.gf}</td><td>${r.ga}</td></tr>`).join('')}
+            </table>
+            </div>
+        </div>`;
+        renderHTML(html);
+
+        Plotly.newPlot('chart-teams', [
+            { x: top16.map(r => r.name), y: top16.map(r => r.wins), type: 'bar', name: 'Victorias', marker: { color: '#2ca02c' } },
+            { x: top16.map(r => r.name), y: top16.map(r => r.draws), type: 'bar', name: 'Empates', marker: { color: '#888' } },
+            { x: top16.map(r => r.name), y: top16.map(r => r.losses), type: 'bar', name: 'Derrotas', marker: { color: '#d62728' } },
+        ], { ...layout, barmode: 'stack', height: 450, xaxis: { tickangle: -45 } }, plotlyConfig());
+    }
+
+    async function loadKnockout() {
+        const data = await fetchData('/api/knockout');
+        let html = `
+        <div class="card">
+            <h2>Llave de eliminatorias</h2>
+            <div style="overflow-x:auto">
+            <table>
+                <tr><th>Ronda</th><th>Local</th><th>Marcador</th><th>Visitante</th></tr>
+                ${data.map(r => {
+                    let score = `${r.home_score}-${r.away_score}`;
+                    if (r.home_penalty != null) score += ` (${r.home_penalty}-${r.away_penalty} pen)`;
+                    if (r.extra_time) score += ' (a.e.t.)';
+                    return `<tr><td>${r.round}</td><td>${r.home}</td><td>${score}</td><td>${r.away}</td></tr>`;
+                }).join('')}
+            </table>
+            </div>
+        </div>`;
+        renderHTML(html);
+    }
+
+    // Load on start
+    loadOverview();
+    </script>
+</body>
+</html>
