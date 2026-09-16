@@ -1,13 +1,18 @@
 """Dashboard Dash interactivo para comparar Mundiales FIFA."""
 
+import json
 import os
 import sqlite3
+import sys
 
 import dash
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from dash import Input, Output, callback, dash_table, dcc, html
+from dash import Input, Output, State, callback, dash_table, dcc, html
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__))))
+from src.match_predictor import predict_match, get_all_teams, train_model
 
 DB_HIST = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "historical.db")
 DB_2026 = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "worldcup.db")
@@ -63,6 +68,10 @@ app.layout = html.Div(style={"backgroundColor": COLORS["bg"], "minHeight": "100v
                          selected_style={"backgroundColor": COLORS["accent"], "color": "white", "border": "none"}),
                  dcc.Tab(label="Eliminatorias", value="knockout", style={"backgroundColor": COLORS["card"], "color": COLORS["text"], "border": "none"},
                          selected_style={"backgroundColor": COLORS["accent"], "color": "white", "border": "none"}),
+                 dcc.Tab(label="Predicciones ML", value="predictions", style={"backgroundColor": COLORS["card"], "color": COLORS["text"], "border": "none"},
+                         selected_style={"backgroundColor": COLORS["accent"], "color": "white", "border": "none"}),
+                 dcc.Tab(label="Comparar Equipos", value="compare", style={"backgroundColor": COLORS["card"], "color": COLORS["text"], "border": "none"},
+                         selected_style={"backgroundColor": COLORS["accent"], "color": "white", "border": "none"}),
              ]),
 
     html.Div(id="tab-content", style={"maxWidth": "1100px", "margin": "0 auto", "padding": "30px 20px"}),
@@ -70,6 +79,7 @@ app.layout = html.Div(style={"backgroundColor": COLORS["bg"], "minHeight": "100v
 
 
 def card(title, children):
+    child_list = children if isinstance(children, list) else [children]
     return html.Div(style={
         "backgroundColor": COLORS["card"], "borderRadius": "12px", "padding": "25px",
         "marginBottom": "25px", "border": f"1px solid {COLORS['border']}",
@@ -77,8 +87,7 @@ def card(title, children):
     }, children=[
         html.H3(title, style={"color": COLORS["gold"], "fontSize": "1.3rem", "marginBottom": "15px",
                               "paddingBottom": "10px", "borderBottom": f"2px solid {COLORS['border']}"}),
-        *children if isinstance(children, list) else [children],
-    ])
+    ] + child_list)
 
 
 def stat_row(stats):
@@ -106,6 +115,10 @@ def render_tab(tab):
         return teams_tab()
     elif tab == "knockout":
         return knockout_tab()
+    elif tab == "predictions":
+        return predictions_tab()
+    elif tab == "compare":
+        return compare_tab()
     return html.Div()
 
 
@@ -293,5 +306,177 @@ def knockout_tab():
     ])
 
 
+# ── ML Predictions ─────────────────────────────────────────────────────────────
+
+_team_list = [t["name"] for t in get_all_teams()]
+_model, _features, _, _, _, _ = train_model()
+
+
+def predictions_tab():
+    return html.Div([
+        card("Predicción de Partidos — Random Forest", [
+            html.Div(style={"display": "flex", "gap": "20px", "flexWrap": "wrap", "marginBottom": "20px"}, children=[
+                html.Div(style={"flex": "1", "minWidth": "200px"}, children=[
+                    html.Label("Equipo Local", style={"color": COLORS["muted"], "fontSize": "0.9rem"}),
+                    dcc.Dropdown(id="pred-home", options=[{"label": t, "value": t} for t in _team_list],
+                                 value="Argentina", style={"backgroundColor": COLORS["bg"], "color": "#000"}),
+                ]),
+                html.Div(style={"flex": "1", "minWidth": "200px"}, children=[
+                    html.Label("Equipo Visitante", style={"color": COLORS["muted"], "fontSize": "0.9rem"}),
+                    dcc.Dropdown(id="pred-away", options=[{"label": t, "value": t} for t in _team_list],
+                                 value="France", style={"backgroundColor": COLORS["bg"], "color": "#000"}),
+                ]),
+            ]),
+            html.Button("Predecir", id="pred-btn", n_clicks=0,
+                        style={"backgroundColor": COLORS["accent"], "color": "white", "border": "none",
+                               "padding": "10px 30px", "borderRadius": "8px", "cursor": "pointer",
+                               "fontWeight": "700", "fontSize": "1rem"}),
+        ]),
+        html.Div(id="pred-result"),
+    ])
+
+
+@callback(
+    Output("pred-result", "children"),
+    Input("pred-btn", "n_clicks"),
+    State("pred-home", "value"),
+    State("pred-away", "value"),
+)
+def update_prediction(n_clicks, home, away):
+    if n_clicks == 0 or not home or not away:
+        return html.Div()
+    if home == away:
+        return card("Error", html.P("Selecciona dos equipos diferentes"))
+
+    pred = predict_match(home, away)
+    probs = pred["probabilities"]
+
+    labels = []
+    values = []
+    colors = []
+    for k, label in [("home_win", f"{home} victoria"), ("draw", "Empate"), ("away_win", f"{away} victoria")]:
+        if k in probs:
+            labels.append(label)
+            values.append(probs[k])
+            colors.append(COLORS["gold"] if k == "home_win" else (COLORS["muted"] if k == "draw" else COLORS["accent"]))
+
+    fig = go.Figure(go.Bar(
+        x=values, y=labels, orientation="h", text=[f"{v}%" for v in values],
+        textposition="outside", marker_color=colors,
+    ))
+    fig.update_layout(
+        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+        font_color=COLORS["text"], height=200, margin=dict(t=10, b=10, l=10, r=10),
+        xaxis=dict(range=[0, 100], title="%"),
+    )
+
+    hs = pred["home_stats"]
+    aws = pred["away_stats"]
+
+    def team_card(name, stats, color):
+        return html.Div(style={
+            "flex": "1", "minWidth": "200px", "backgroundColor": COLORS["bg"],
+            "borderRadius": "10px", "padding": "15px", "border": f"2px solid {color}",
+        }, children=[
+            html.Div(name, style={"fontWeight": "700", "color": color, "fontSize": "1.1rem", "marginBottom": "10px"}),
+            html.Div(f"Ranking FIFA: {stats['fifa_ranking']}", style={"color": COLORS["text"]}),
+            html.Div(f"Confederación: {stats['confederation']}", style={"color": COLORS["text"]}),
+            html.Div(f"Partidos WC: {stats['wc_matches']}", style={"color": COLORS["text"]}),
+            html.Div(f"Win rate: {stats['wc_win_rate']}%", style={"color": COLORS["text"]}),
+        ])
+
+    return html.Div([
+        card("Probabilidades", dcc.Graph(figure=fig, config={"displayModeBar": False})),
+        card("Comparación de Estadísticas", html.Div(style={"display": "flex", "gap": "20px", "flexWrap": "wrap"}, children=[
+            team_card(home, hs, COLORS["gold"]),
+            team_card(away, aws, COLORS["accent"]),
+        ])),
+    ])
+
+
+def compare_tab():
+    return html.Div([
+        card("Comparar Equipos — Radar Chart", [
+            html.Div(style={"marginBottom": "20px"}, children=[
+                html.Label("Selecciona 2-4 equipos", style={"color": COLORS["muted"], "fontSize": "0.9rem"}),
+                dcc.Dropdown(id="compare-teams", options=[{"label": t, "value": t} for t in _team_list],
+                             multi=True, maxValues=4, value=["Argentina", "France", "Brazil", "Germany"],
+                             style={"backgroundColor": COLORS["bg"], "color": "#000"}),
+            ]),
+        ]),
+        html.Div(id="compare-result"),
+    ])
+
+
+@callback(Output("compare-result", "children"), Input("compare-teams", "value"))
+def update_comparison(selected):
+    if not selected or len(selected) < 2:
+        return card("Selecciona al menos 2 equipos", html.P(""))
+
+    conn = sqlite3.connect(DB_2026)
+    perf = pd.read_sql_query(
+        "SELECT t.name, t.fifa_ranking, t.confederation, "
+        "COUNT(*) as played, "
+        "SUM(CASE WHEN (m.home_team_id=t.team_id AND m.home_score>m.away_score) OR "
+        "(m.away_team_id=t.team_id AND m.away_score>m.home_score) THEN 1 ELSE 0 END) as wins, "
+        "SUM(CASE WHEN m.home_score=m.away_score THEN 1 ELSE 0 END) as draws, "
+        "SUM(CASE WHEN (m.home_team_id=t.team_id AND m.home_score<m.away_score) OR "
+        "(m.away_team_id=t.team_id AND m.away_score<m.home_score) THEN 1 ELSE 0 END) as losses, "
+        "SUM(CASE WHEN m.home_team_id=t.team_id THEN m.home_score ELSE m.away_score END) as gf, "
+        "SUM(CASE WHEN m.home_team_id=t.team_id THEN m.away_score ELSE m.home_score END) as ga "
+        "FROM teams t JOIN matches m ON t.team_id IN (m.home_team_id, m.away_team_id) "
+        "WHERE t.name IN ({}) GROUP BY t.team_id".format(",".join("?" * len(selected))),
+        conn, params=selected,
+    )
+    conn.close()
+
+    if perf.empty:
+        return card("No hay datos", html.P(""))
+
+    categories = ["Ranking (inv)", "Victoria GF", "Goles a favor", "Diferencia GF-GA", "Puntos"]
+    fig_radar = go.Figure()
+    for _, row in perf.iterrows():
+        max_rank = perf["fifa_ranking"].max() or 100
+        vals = [
+            (1 - row["fifa_ranking"] / max_rank) * 100 if row["fifa_ranking"] else 50,
+            row["wins"] / max(row["played"], 1) * 100,
+            row["gf"] / max(row["played"], 1) * 20,
+            max(row["gf"] - row["ga"], 0) * 5,
+            row["wins"] * 3 + row["draws"],
+        ]
+        fig_radar.add_trace(go.Scatterpolar(r=vals + [vals[0]], theta=categories + [categories[0]],
+                                             fill="toself", name=row["name"]))
+    fig_radar.update_layout(
+        polar=dict(bgcolor="rgba(0,0,0,0)", radialaxis=dict(visible=True, range=[0, 100])),
+        paper_bgcolor="rgba(0,0,0,0)", font_color=COLORS["text"], height=450,
+        legend=dict(font=dict(color=COLORS["text"])),
+    )
+
+    fig_bar = go.Figure()
+    metrics = ["played", "wins", "draws", "losses", "gf", "ga"]
+    labels = ["Jugados", "Victorias", "Empates", "Derrotas", "GF", "GC"]
+    bar_colors = ["#2ca02c", COLORS["gold"], COLORS["muted"], COLORS["accent"], "#1f77b4", "#ff7f0e"]
+    for i, m in enumerate(metrics):
+        fig_bar.add_trace(go.Bar(x=perf["name"], y=perf[m], name=labels[i], marker_color=bar_colors[i]))
+    fig_bar.update_layout(
+        barmode="group", paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+        font_color=COLORS["text"], height=400, legend=dict(orientation="h", y=1.15),
+    )
+
+    return html.Div([
+        card("Radar de Comparación", dcc.Graph(figure=fig_radar, config={"displayModeBar": False})),
+        card("Estadísticas Comparadas", dcc.Graph(figure=fig_bar, config={"displayModeBar": False})),
+        card("Tabla Detallada",
+             dash_table.DataTable(
+                 data=perf.to_dict("records"),
+                 columns=[{"name": c, "id": c} for c in perf.columns],
+                 style_table={"overflowX": "auto"},
+                 style_header={"backgroundColor": COLORS["border"], "color": COLORS["text"], "fontWeight": "bold"},
+                 style_cell={"backgroundColor": COLORS["card"], "color": COLORS["text"],
+                             "border": f"1px solid {COLORS['border']}", "padding": "8px", "textAlign": "left"},
+             )),
+    ])
+
+
 if __name__ == "__main__":
-    app.run(debug=True, port=8050)
+    app.run(debug=False, port=8050)
