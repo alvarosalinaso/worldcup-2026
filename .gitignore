@@ -1,5 +1,3 @@
-data/*.db
-data/*.db-journal
 __pycache__/
 *.py[cod]
 .venv/
