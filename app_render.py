@@ -7,8 +7,11 @@ import sys
 
 import dash
 import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
+try:
+    import plotly.express as px
+    import plotly.graph_objects as go
+except ImportError:
+    px = go = None
 from dash import Input, Output, State, callback, dash_table, dcc, html
 
 sys.path.insert(0, os.path.dirname(__file__))
