@@ -7,21 +7,15 @@ import sys
 
 import dash
 import pandas as pd
-try:
-    import plotly.express as px
-    import plotly.graph_objects as go
-except ImportError:
-    px = go = None
+import plotly.express as px
+import plotly.graph_objects as go
 from dash import Input, Output, State, callback, dash_table, dcc, html
 
-sys.path.insert(0, os.path.dirname(__file__))
-try:
-    from src.match_predictor import predict_match, get_all_teams, train_model
-except Exception:
-    predict_match = get_all_teams = train_model = None
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__))))
+from src.match_predictor import predict_match, get_all_teams, train_model
 
-DB_HIST = os.path.join(os.path.dirname(__file__), "data", "historical.db")
-DB_2026 = os.path.join(os.path.dirname(__file__), "data", "worldcup.db")
+DB_HIST = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "historical.db")
+DB_2026 = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "worldcup.db")
 
 app = dash.Dash(
     __name__,
@@ -486,4 +480,3 @@ def update_comparison(selected):
 
 if __name__ == "__main__":
     app.run(debug=False, host="0.0.0.0", port=int(os.environ.get("PORT", 8050)))
-
