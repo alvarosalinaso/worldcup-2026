@@ -1,7 +1,9 @@
-﻿services:
+services:
   - type: web
     name: dashboard
-    runtime: docker
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python dashboard/app.py
     envVars:
       - key: PYTHON_VERSION
         value: python-3.11.8
