@@ -11,7 +11,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from dash import Input, Output, State, callback, dash_table, dcc, html
 
-sys.path.insert(0, os.path.dirname(__file__)))
+sys.path.insert(0, os.path.dirname(__file__))
 from src.match_predictor import predict_match, get_all_teams, train_model
 
 DB_HIST = os.path.join(os.path.dirname(__file__), "data", "historical.db")
