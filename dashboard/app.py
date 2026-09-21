@@ -9,7 +9,7 @@ import dash
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from dash import Input, Output, State, callback, dash_table, dcc, html
+from dash import Input, Output, State, callback, dash_table, dcc, html, no_update
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__))))
 from src.match_predictor import predict_match, get_all_teams
@@ -43,16 +43,60 @@ matches_2026 = q(
 )
 
 COLORS = {
-    "bg": "#0f0f23", "card": "#1a1a2e", "border": "#2a2a4a",
-    "gold": "#FFD700", "text": "#e0e0e0", "muted": "#8892b0",
-    "accent": "#d62728",
+    "bg": "#0a0a1a", "card": "#141428", "border": "#2a2a4a",
+    "gold": "#FFD700", "text": "#e8e8e8", "muted": "#8892b0",
+    "accent": "#e94560", "neon_green": "#00ffcc", "neon_blue": "#54a0ff",
 }
 
+NEON_POSTER_SVG = (
+    "data:image/svg+xml,"
+    "%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='140' viewBox='0 0 1200 140'%3E"
+    "%3Crect width='1200' height='140' fill='%230a0a1a'/%3E"
+    "%3Cg fill='none' stroke='%23e94560' stroke-width='2' opacity='0.8'%3E"
+    "%3Cpath d='M0,110 Q200,40 400,90 T800,70 T1200,100'/%3E%3C/g%3E"
+    "%3Cg fill='none' stroke='%2300ffcc' stroke-width='2' opacity='0.6'%3E"
+    "%3Cpath d='M0,90 Q250,120 500,60 T900,95 T1200,70'/%3E%3C/g%3E"
+    "%3Cg fill='%23FFD700' opacity='0.9'%3E"
+    "%3Ccircle cx='120' cy='60' r='5'/%3E%3Ccircle cx='340' cy='95' r='4'/%3E%3Ccircle cx='620' cy='45' r='6'/%3E"
+    "%3Ccircle cx='860' cy='80' r='4'/%3E%3Ccircle cx='1050' cy='55' r='5'/%3E"
+    "%3C/g%3E%3Cg stroke='%2354a0ff' stroke-width='1' opacity='0.25'%3E"
+    "%3Cline x1='0' y1='35' x2='1200' y2='35'/%3E%3Cline x1='0' y1='70' x2='1200' y2='70'/%3E%3Cline x1='0' y1='105' x2='1200' y2='105'/%3E"
+    "%3C/g%3E%3C/svg%3E"
+)
+
+
+def sparkline(values, color="#e94560"):
+    if not values or len(values) < 2:
+        return html.Div(style={"height": "36px"})
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        y=list(values), mode="lines",
+        line={"color": color, "width": 2.5, "shape": "spline"},
+        fill="tozeroy", hoverinfo="skip", showlegend=False,
+    ))
+    fig.update_layout(
+        margin={"t": 0, "b": 0, "l": 0, "r": 0},
+        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+        xaxis={"visible": False}, yaxis={"visible": False}, height=36,
+    )
+    return dcc.Graph(figure=fig, config={"displayModeBar": False}, style={"height": "36px"})
+
+
+def insight_card(question, answer, accent="#e94560"):
+    return html.Div(
+        style={"backgroundColor": "#141428", "border": "1px solid #2a2a4a", "borderLeft": f"4px solid {accent}", "borderRadius": "10px", "padding": "14px 16px", "marginBottom": "12px", "boxShadow": "0 0 24px rgba(233,69,96,0.12)"},
+        children=[
+            html.Div(question, style={"fontWeight": "800", "textTransform": "uppercase", "fontSize": "0.72rem", "letterSpacing": "0.08em", "color": "#8892b0"}),
+            html.Div(answer, style={"marginTop": "4px", "color": "#e8e8e8", "lineHeight": "1.5"}),
+        ],
+    )
+
 app.layout = html.Div(style={"backgroundColor": COLORS["bg"], "minHeight": "100vh", "fontFamily": "Segoe UI, sans-serif"}, children=[
-    # Header
-    html.Div(style={"background": "linear-gradient(135deg, #1a1a3e, #0d1b2a)", "padding": "40px 20px", "textAlign": "center", "borderBottom": f"3px solid {COLORS['accent']}"}, children=[
-        html.H1("Mundial FIFA 2026", style={"fontSize": "2.5rem", "fontWeight": "800", "color": COLORS["gold"], "margin": "0"}),
+    # Header — neon abstract data-art poster
+    html.Div(style={"background": "linear-gradient(135deg, #1a1a3e, #0d1b2a)", "padding": "40px 20px 0 20px", "textAlign": "center", "borderBottom": f"3px solid {COLORS['accent']}"}, children=[
+        html.H1("Mundial FIFA 2026", style={"fontSize": "2.5rem", "fontWeight": "800", "color": COLORS["gold"], "margin": "0", "textShadow": "0 0 24px rgba(255,215,0,0.35)"}),
         html.P("Dashboard interactivo - Comparación de ediciones", style={"color": COLORS["muted"], "marginTop": "8px"}),
+        html.Div(style={"backgroundImage": f"url(\"{NEON_POSTER_SVG}\")", "backgroundSize": "cover", "backgroundPosition": "center", "height": "140px", "marginTop": "16px", "borderTop": "1px solid #2a2a4a"}),
     ]),
 
     # Tabs
@@ -138,7 +182,8 @@ def overview_tab():
 
     fig_avg = go.Figure()
     fig_avg.add_trace(go.Scatter(x=years, y=avg, mode="lines+markers+text", text=[str(v) for v in avg],
-                                 textposition="top center", line=dict(color=COLORS["gold"], width=3)))
+                                 textposition="top center", line=dict(color=COLORS["gold"], width=3),
+                                 hovertemplate="<b>%{x}</b><br>%{y} goles/partido<extra></extra>"))
     fig_avg.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
                           font_color=COLORS["text"], height=350, margin=dict(t=30, b=30),
                           yaxis_title="Goles/partido")
@@ -150,6 +195,12 @@ def overview_tab():
             ("48", "Selecciones"),
             ("3", "Sedes"),
         ]),
+        card("Key Insights — Resumen ejecutivo", html.Div([
+            insight_card("¿Problema?", "Comparar ediciones con distinto formato sin caer en narrativa.", COLORS["accent"]),
+            insight_card("¿Metodología?", "SQLite + queries auditadas + ML con validación cruzada y disclaimers de simulación.", COLORS["neon_green"]),
+            insight_card("¿Decisión?", "Qué edición fue más goleadora y qué sedes rinden más para cobertura.", COLORS["gold"]),
+            sparkline(goals, COLORS["accent"]),
+        ])),
         card("Evolución de goles por edición", dcc.Graph(figure=fig_goals, config={"displayModeBar": False})),
         card("Promedio de goles por partido", dcc.Graph(figure=fig_avg, config={"displayModeBar": False})),
         card("Top 5 goleadores 2026",
@@ -174,12 +225,15 @@ def goals_tab():
     )
     by_round["avg"] = (by_round["goals"] / by_round["matches"]).round(2)
 
+    total = int(by_round["goals"].sum())
     fig = go.Figure()
     fig.add_trace(go.Bar(x=by_round["round"], y=by_round["goals"], text=by_round["goals"],
-                         textposition="outside", name="Goles", marker_color=COLORS["accent"]))
+                         textposition="outside", name="Goles", marker_color=COLORS["accent"],
+                         hovertemplate="<b>%{x}</b><br>Goles: %{y}<br>%{y:.0%} del total (" + str(total) + ")<extra>Clic para filtrar</extra>"))
     fig.add_trace(go.Scatter(x=by_round["round"], y=by_round["avg"], text=[str(v) for v in by_round["avg"]],
                              textposition="top center", mode="lines+markers", name="Promedio",
-                             line=dict(color=COLORS["gold"], width=2), yaxis="y2"))
+                             line=dict(color=COLORS["gold"], width=2), yaxis="y2",
+                             hovertemplate="<b>%{x}</b><br>Promedio: %{y} goles/partido<extra></extra>"))
     fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
                       font_color=COLORS["text"], height=400, margin=dict(t=30),
                       yaxis=dict(title="Goles totales"), yaxis2=dict(title="Promedio", overlaying="y", side="right"))
@@ -187,12 +241,28 @@ def goals_tab():
     conf = q("SELECT t.confederation, SUM(g.goals) as goals FROM goals g JOIN teams t ON g.team_id=t.team_id WHERE g.own_goal=0 GROUP BY t.confederation ORDER BY goals DESC", DB_2026)
     fig_conf = px.pie(conf, names="confederation", values="goals", hole=0.3,
                       color_discrete_sequence=px.colors.qualitative.Set2)
+    fig_conf.update_traces(hovertemplate="<b>%{label}</b><br>Goles: %{value}<br>%{percent}<extra></extra>")
     fig_conf.update_layout(paper_bgcolor="rgba(0,0,0,0)", font_color=COLORS["text"], height=400)
 
     return html.Div([
-        card("Goles por ronda", dcc.Graph(figure=fig, config={"displayModeBar": False})),
+        card("Goles por ronda — clic una barra para filtrar", html.Div([
+            dcc.Graph(id="goals-round-bar", figure=fig, config={"displayModeBar": False}),
+            html.Div(id="goals-crossfilter-output", style={"marginTop": "8px", "color": COLORS["gold"], "fontWeight": "700"}),
+        ])),
         card("Distribución por confederación", dcc.Graph(figure=fig_conf, config={"displayModeBar": False})),
     ])
+
+
+@callback(
+    Output("goals-crossfilter-output", "children"),
+    Input("goals-round-bar", "clickData"),
+    prevent_initial_call=True,
+)
+def goals_crossfilter(click):
+    if not click:
+        return no_update
+    r = click["points"][0].get("x", "?")
+    return f"Ronda seleccionada: {r} — úsala para filtrar Eliminatorias y Equipos."
 
 
 def stadiums_tab():
