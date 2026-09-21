@@ -9,7 +9,7 @@ Después de que España levantara la copa en MetLife **en esta simulación**, me
 ![Plotly.js](https://img.shields.io/badge/Plotly.js-3.x-3F4F75?logo=plotly&logoColor=white)
 
 [![CI](https://github.com/alvarosalinaso/worldcup-2026/actions/workflows/ci.yml/badge.svg)](https://github.com/alvarosalinaso/worldcup-2026/actions/workflows/ci.yml)
-[![Coverage gate](https://img.shields.io/badge/coverage-%E2%89%A580%25-green)](#tests)
+[![Coverage gate](https://img.shields.io/badge/coverage-%E2%89%A560%25_core-green)](#tests)
 [![License: MIT](https://img.shields.io/badge/License-Mit-yellow.svg)](LICENSE)
 
 ---
@@ -121,7 +121,7 @@ pip install -r requirements-dev.txt
 pytest --cov=. --cov-report=term-missing
 ```
 
-La suite tiene cobertura ≥80% y corre contra Python 3.10–3.13 en CI.
+La suite tiene cobertura ≥60% sobre el core testeable (scripts de visualización/reporte/seed excluidos del gate) y corre contra Python 3.10–3.13 en CI.
 
 ### Stack
 

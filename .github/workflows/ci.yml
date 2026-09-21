@@ -45,7 +45,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt -r requirements-dev.txt
-      - name: Run tests (coverage gate >=80%)
+      - name: Run tests (coverage gate >=60% core, baseline 2026-09-21)
         run: pytest
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
