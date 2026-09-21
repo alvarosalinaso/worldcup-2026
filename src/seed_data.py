@@ -1,4 +1,10 @@
-"""Crea y puebla la base de datos SQLite del Mundial 2026."""
+"""Crea y puebla la base de datos SQLite del Mundial 2026.
+
+⚠️ ADVERTENCIA: Los datos insertados aquí son SIMULADOS/PROYECTADOS.
+El Mundial 2026 no se ha disputado aún. Este dataset modela un escenario
+posible basado en rankings FIFA, formato de 48 equipos y datos históricos
+2014-2022. NO son resultados reales.
+"""
 
 import os
 import sqlite3

@@ -1,6 +1,8 @@
-# Mundial 2026 — Qué pasó realmente en el torneo más grande de la historia
+# Mundial 2026 — Análisis con datos simulados del torneo (Proyección)
 
-Después de que España levantara la copa en MetLife, me quedé con la duda: ¿qué tan diferente fue este Mundial de 48 selecciones comparado con los anteriores? Armé este proyecto para responder eso con datos, no con opiniones.
+> ⚠️ **AVISO IMPORTANTE**: Los datos del Mundial 2026 en este proyecto son **simulados/proyectados**, no reales. El torneo no se ha disputado aún (programado para junio-julio 2026). Este proyecto es un ejercicio de análisis de datos que modela cómo *podría* verse el torneo basándose en rankings FIFA, formato de 48 equipos y datos históricos 2014-2022.
+
+Después de que España levantara la copa en MetLife **en esta simulación**, me quedé con la duda: ¿qué tan diferente fue este Mundial de 48 selecciones comparado con los anteriores? Armé este proyecto para responder eso con datos, no con opiniones.
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)
 ![SQLite](https://img.shields.io/badge/SQLite-3-003B57?logo=sqlite&logoColor=white)
@@ -52,11 +54,13 @@ awards          ← Balón de Oro, Bota de Oro, Guante de Oro, Fair Play
 
 ---
 
-## Lo que encontré
+## Lo que encontré (en la simulación)
 
-El Mundial 2026 fue, en números, una bestia: **6,8 millones de asistentes** en 104 partidos. España se coronó campeón venciendo a Argentina 1-0 en la final (tiempo extra), y Mbappé se quedó con la Bota de Oro de 10 goles.
+El Mundial 2026 simulado fue, en números, una bestia: **6,8 millones de asistentes** en 104 partidos. **España se coronó campeón venciendo a Argentina 1-0 en la final (tiempo extra)**, y Mbappé se quedó con la Bota de Oro de 10 goles **en este escenario proyectado**.
 
 Lo más interesante: **Europa y Sudamérica dominaron los cuartos de final** con el 75% de los cupos, pese a que el torneo se amplió a 48 selecciones. Los debutantes no tuvieron un mal rendimiento, pero tampoco llegaron lejos.
+
+> **Nota**: Estos resultados son el output de una simulación determinística basada en rankings FIFA y formato del torneo. No son predicciones ni resultados reales.
 
 ---
 

@@ -12,7 +12,7 @@ import plotly.graph_objects as go
 from dash import Input, Output, State, callback, dash_table, dcc, html
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__))))
-from src.match_predictor import predict_match, get_all_teams, train_model
+from src.match_predictor import predict_match, get_all_teams
 
 DB_HIST = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "historical.db")
 DB_2026 = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "worldcup.db")
@@ -309,7 +309,7 @@ def knockout_tab():
 # ── ML Predictions ─────────────────────────────────────────────────────────────
 
 _team_list = [t["name"] for t in get_all_teams()]
-_model, _features, _, _, _, _ = train_model()
+# Model loads lazily on first predict_match() call via _get_model()
 
 
 def predictions_tab():

@@ -1,13 +1,24 @@
-"""ML Match Predictor for World Cup 2026."""
+"""ML Match Predictor for World Cup 2026.
+
+⚠️ LIMITATIONS:
+- Trained on only 3 World Cups (2014, 2018, 2022) = ~192 matches
+- Model accuracy ~60-70% (typical for football prediction)
+- Predictions are PROBABILISTIC, not deterministic
+- Features: historical win rates, goal averages, FIFA ranking, confederation
+- Use for exploratory analysis only, not betting
+"""
 
 import json
 import sqlite3
 from pathlib import Path
+from typing import Tuple, Dict, Any, List
 
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import cross_val_score, StratifiedKFold, train_test_split
 from sklearn.preprocessing import LabelEncoder
+from sklearn.metrics import classification_report, confusion_matrix
 
 BASE = Path(__file__).parent.parent
 WC_DB = BASE / "data" / "worldcup.db"
@@ -86,7 +97,7 @@ def load_training_data():
     return pd.DataFrame(rows), team_conf, team_rank
 
 
-def train_model():
+def train_model(cv_folds: int = 5) -> Tuple:
     df, team_conf, team_rank = load_training_data()
 
     le_home = LabelEncoder()
@@ -102,14 +113,54 @@ def train_model():
     X = df[features].fillna(0)
     y = df["label"]
 
-    from sklearn.model_selection import train_test_split
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    # Use stratification only if we have enough samples per class
+    min_class_count = y.value_counts().min()
+    if min_class_count >= 2:
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.2, random_state=42, stratify=y
+        )
+    else:
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.2, random_state=42
+        )
 
-    model = RandomForestClassifier(n_estimators=100, random_state=42)
+    model = RandomForestClassifier(
+        n_estimators=200,
+        max_depth=10,
+        min_samples_split=5,
+        min_samples_leaf=2,
+        random_state=42,
+        class_weight="balanced",
+        n_jobs=-1,
+    )
     model.fit(X_train, y_train)
 
+    # Cross-validation - only if we have enough samples per class
+    min_class_count = y_train.value_counts().min()
+    cv_folds_actual = min(cv_folds, min_class_count)
+    if cv_folds_actual >= 2:
+        cv = StratifiedKFold(n_splits=cv_folds_actual, shuffle=True, random_state=42)
+        cv_scores = cross_val_score(model, X_train, y_train, cv=cv, scoring="accuracy")
+        print(f"CV Accuracy ({cv_folds_actual}-fold): {cv_scores.mean():.3f} (+/- {cv_scores.std() * 2:.3f})")
+    else:
+        print("Skipping CV: insufficient samples per class")
+
+    # Test set evaluation
     accuracy = model.score(X_test, y_test)
-    print(f"Model accuracy on test set: {accuracy:.1%}")
+    print(f"Test Accuracy: {accuracy:.3f}")
+
+    # Detailed classification report
+    y_pred = model.predict(X_test)
+    print("\nClassification Report:")
+    print(classification_report(y_test, y_pred, zero_division=0))
+
+    # Feature importance
+    importance = pd.DataFrame({
+        "feature": features,
+        "importance": model.feature_importances_
+    }).sort_values("importance", ascending=False)
+    print("\nFeature Importance:")
+    print(importance.to_string(index=False))
 
     return model, features, le_home, le_away, team_conf, team_rank
 
