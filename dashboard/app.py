@@ -32,14 +32,28 @@ def q(sql, db, params=()):
     return df
 
 
-# Data
-hist = q("SELECT * FROM world_cups ORDER BY year", DB_HIST)
-teams_2026 = q("SELECT DISTINCT name, confederation FROM teams", DB_2026)
-matches_2026 = q(
+# Data (module-level but crash-safe: missing DB -> empty frames, tabs show fallback)
+def _safe_q(sql, db, columns):
+    try:
+        if not os.path.exists(db):
+            print(f"[WARN] DB no encontrada: {db}")
+            return pd.DataFrame({c: [] for c in columns})
+        return q(sql, db)
+    except Exception as e:  # noqa: BLE001
+        print(f"[WARN] Query fallida ({e}); continuando con datos vacíos")
+        return pd.DataFrame({c: [] for c in columns})
+
+
+hist = _safe_q("SELECT * FROM world_cups ORDER BY year", DB_HIST,
+               ["year", "total_goals", "total_matches"])
+teams_2026 = _safe_q("SELECT DISTINCT name, confederation FROM teams", DB_2026,
+                     ["name", "confederation"])
+matches_2026 = _safe_q(
     "SELECT m.*, t1.name as home, t2.name as away, s.name as stadium "
     "FROM matches m JOIN teams t1 ON m.home_team_id=t1.team_id "
     "JOIN teams t2 ON m.away_team_id=t2.team_id "
-    "JOIN stadiums s ON m.stadium_id=s.stadium_id", DB_2026
+    "JOIN stadiums s ON m.stadium_id=s.stadium_id", DB_2026,
+    ["home", "away", "stadium", "home_score", "away_score"],
 )
 
 COLORS = {
@@ -378,7 +392,11 @@ def knockout_tab():
 
 # ── ML Predictions ─────────────────────────────────────────────────────────────
 
-_team_list = [t["name"] for t in get_all_teams()]
+try:
+    _team_list = [t["name"] for t in get_all_teams()]
+except Exception as e:  # noqa: BLE001
+    print(f"[WARN] No se pudo cargar lista de equipos ({e}); dropdown vacío")
+    _team_list = []
 # Model loads lazily on first predict_match() call via _get_model()
 
 
