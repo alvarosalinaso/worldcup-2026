@@ -279,6 +279,30 @@ def goals_crossfilter(click):
     return f"Ronda seleccionada: {r} — úsala para filtrar Eliminatorias y Equipos."
 
 
+@callback(
+    Output("stadiums-crossfilter-output", "children"),
+    Input("stadiums-bar", "clickData"),
+    prevent_initial_call=True,
+)
+def stadiums_crossfilter(click):
+    if not click:
+        return no_update
+    s = click["points"][0].get("x", "?")
+    return f"Estadio seleccionado: {s} — ver sus partidos en Eliminatorias."
+
+
+@callback(
+    Output("teams-crossfilter-output", "children"),
+    Input("teams-bar", "clickData"),
+    prevent_initial_call=True,
+)
+def teams_crossfilter(click):
+    if not click:
+        return no_update
+    t = click["points"][0].get("x", "?")
+    return f"Equipo seleccionado: {t} — compáralo en el radar de Comparar Equipos."
+
+
 def stadiums_tab():
     att = q(
         "SELECT s.name, s.host_city, s.country, s.capacity, "
@@ -291,15 +315,20 @@ def stadiums_tab():
     short_name = att["name"].str.split("(").str[0].str.strip()
     fig = go.Figure()
     fig.add_trace(go.Bar(x=short_name, y=att["avg_att"], text=att["avg_att"].astype(int),
-                         textposition="outside", name="Asistencia", marker_color="#2ca02c"))
+                         textposition="outside", name="Asistencia", marker_color="#2ca02c",
+                         hovertemplate="<b>%{x}</b><br>Asistencia media: %{y:,.0f}<extra>Clic para filtrar</extra>"))
     fig.add_trace(go.Scatter(x=short_name, y=att["capacity"], mode="lines",
-                             line=dict(color=COLORS["accent"], dash="dash"), name="Capacidad"))
+                             line=dict(color=COLORS["accent"], dash="dash"), name="Capacidad",
+                             hovertemplate="<b>%{x}</b><br>Capacidad: %{y:,.0f}<extra></extra>"))
     fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
                       font_color=COLORS["text"], height=450, margin=dict(t=30),
                       xaxis=dict(tickangle=-45), yaxis=dict(title="Personas"))
 
     return html.Div([
-        card("Asistencia vs Capacidad", dcc.Graph(figure=fig, config={"displayModeBar": False})),
+        card("Asistencia vs Capacidad — clic un estadio para filtrar", html.Div([
+            dcc.Graph(id="stadiums-bar", figure=fig, config={"displayModeBar": False}),
+            html.Div(id="stadiums-crossfilter-output", style={"marginTop": "8px", "color": COLORS["gold"], "fontWeight": "700"}),
+        ])),
         card("Detalle por estadio",
              dash_table.DataTable(
                  data=att[["name", "host_city", "country", "capacity", "matches", "avg_att", "pct"]].to_dict("records"),
@@ -330,15 +359,21 @@ def teams_tab():
 
     fig = go.Figure()
     top16 = perf.head(16)
-    fig.add_trace(go.Bar(x=top16["name"], y=top16["wins"], name="Victorias", marker_color="#2ca02c"))
-    fig.add_trace(go.Bar(x=top16["name"], y=top16["draws"], name="Empates", marker_color=COLORS["muted"]))
-    fig.add_trace(go.Bar(x=top16["name"], y=top16["losses"], name="Derrotas", marker_color=COLORS["accent"]))
+    fig.add_trace(go.Bar(x=top16["name"], y=top16["wins"], name="Victorias", marker_color="#2ca02c",
+                         hovertemplate="<b>%{x}</b><br>Victorias: %{y}<extra>Clic para filtrar</extra>"))
+    fig.add_trace(go.Bar(x=top16["name"], y=top16["draws"], name="Empates", marker_color=COLORS["muted"],
+                         hovertemplate="<b>%{x}</b><br>Empates: %{y}<extra></extra>"))
+    fig.add_trace(go.Bar(x=top16["name"], y=top16["losses"], name="Derrotas", marker_color=COLORS["accent"],
+                         hovertemplate="<b>%{x}</b><br>Derrotas: %{y}<extra></extra>"))
     fig.update_layout(barmode="stack", paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
                       font_color=COLORS["text"], height=450, margin=dict(t=30, b=30),
                       xaxis=dict(tickangle=-45), legend=dict(orientation="h", y=1.1))
 
     return html.Div([
-        card("Rendimiento top 16 equipos", dcc.Graph(figure=fig, config={"displayModeBar": False})),
+        card("Rendimiento top 16 equipos — clic un equipo para filtrar", html.Div([
+            dcc.Graph(id="teams-bar", figure=fig, config={"displayModeBar": False}),
+            html.Div(id="teams-crossfilter-output", style={"marginTop": "8px", "color": COLORS["gold"], "fontWeight": "700"}),
+        ])),
         card("Tabla completa",
              dash_table.DataTable(
                  data=perf.to_dict("records"),
@@ -521,7 +556,7 @@ def compare_tab():
             html.Div(style={"marginBottom": "20px"}, children=[
                 html.Label("Selecciona 2-4 equipos", style={"color": COLORS["muted"], "fontSize": "0.9rem"}),
                 dcc.Dropdown(id="compare-teams", options=[{"label": t, "value": t} for t in _team_list],
-                             multi=True, maxValues=4, value=["Argentina", "France", "Brazil", "Germany"],
+                             multi=True, value=["Argentina", "France", "Brazil", "Germany"],
                              style={"backgroundColor": COLORS["bg"], "color": "#000"}),
             ]),
         ]),
