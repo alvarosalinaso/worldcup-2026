@@ -113,7 +113,31 @@ def test_matches_per_day_not_empty(seeded_db):
 def test_goals_per_round_covers_seven_rounds(seeded_db):
     df = queries.goals_per_round(db_path=seeded_db)
     assert len(df) == 7
-    assert df["Goals"].sum() == 308
+    # Invariante A1: total por marcadores == total por tabla de goles
+    goals_by_round = int(df["Goals"].sum())
+    goals_table = int(
+        queries.query(
+            "SELECT COALESCE(SUM(goals), 0) AS n FROM goals", db_path=seeded_db
+        )["n"].iloc[0]
+    )
+    assert goals_by_round == goals_table
+
+
+def test_goals_table_matches_scorelines(seeded_db):
+    """Invariante A1: cada partido cuadra marcador vs tabla de goles."""
+    mismatches = queries.query(
+        """
+        SELECT m.match_id,
+               m.home_score + m.away_score AS score,
+               COALESCE(SUM(g.goals), 0) AS goal_rows
+        FROM matches m
+        LEFT JOIN goals g ON g.match_id = m.match_id
+        GROUP BY m.match_id
+        HAVING m.home_score + m.away_score <> COALESCE(SUM(g.goals), 0)
+        """,
+        db_path=seeded_db,
+    )
+    assert mismatches.empty
 
 
 # ── per-team / confederation ───────────────────────────────────────────────────
