@@ -22,6 +22,8 @@ addopts = "-q -ra --cov=src --cov-report=term-missing --cov-report=xml --cov-fai
 [tool.ruff]
 target-version = "py39"
 line-length = 88
+# notebooks/ son artefactos de exploración, no código de producción
+extend-exclude = ["notebooks/"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "SIM"]

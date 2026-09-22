@@ -9,8 +9,12 @@ from flask_cors import CORS
 app = Flask(__name__, static_folder="static")
 CORS(app)
 
-DB_HIST = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "historical.db")
-DB_2026 = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "worldcup.db")
+DB_HIST = os.path.join(
+    os.path.dirname(os.path.dirname(__file__)), "data", "historical.db"
+)
+DB_2026 = os.path.join(
+    os.path.dirname(os.path.dirname(__file__)), "data", "worldcup.db"
+)
 
 
 def query(sql, db, params=()):
@@ -29,7 +33,10 @@ def index():
 @app.route("/api/overview")
 def overview():
     hist = query("SELECT * FROM world_cups ORDER BY year", DB_HIST)
-    stats = query("SELECT COUNT(*) as matches, SUM(home_score+away_score) as goals FROM matches", DB_2026)
+    stats = query(
+        "SELECT COUNT(*) as matches, SUM(home_score+away_score) as goals FROM matches",
+        DB_2026,
+    )
     return jsonify({"history": hist, "current": stats[0]})
 
 
@@ -41,7 +48,8 @@ def goals_by_round():
         "FROM matches GROUP BY round ORDER BY CASE round "
         "WHEN 'Group Stage' THEN 1 WHEN 'Round of 32' THEN 2 WHEN 'Round of 16' THEN 3 "
         "WHEN 'Quarterfinal' THEN 4 WHEN 'Semifinal' THEN 5 WHEN 'Third Place' THEN 6 "
-        "WHEN 'Final' THEN 7 END", DB_2026
+        "WHEN 'Final' THEN 7 END",
+        DB_2026,
     )
     return jsonify(data)
 
@@ -51,7 +59,8 @@ def goals_by_confederation():
     data = query(
         "SELECT t.confederation, SUM(g.goals) as goals "
         "FROM goals g JOIN teams t ON g.team_id=t.team_id WHERE g.own_goal=0 "
-        "GROUP BY t.confederation ORDER BY goals DESC", DB_2026
+        "GROUP BY t.confederation ORDER BY goals DESC",
+        DB_2026,
     )
     return jsonify(data)
 
@@ -61,7 +70,8 @@ def top_scorers():
     data = query(
         "SELECT g.scorer, t.name as team, SUM(g.goals) as goals "
         "FROM goals g JOIN teams t ON g.team_id=t.team_id WHERE g.own_goal=0 "
-        "GROUP BY g.scorer, t.name ORDER BY goals DESC LIMIT 15", DB_2026
+        "GROUP BY g.scorer, t.name ORDER BY goals DESC LIMIT 15",
+        DB_2026,
     )
     return jsonify(data)
 
@@ -73,7 +83,8 @@ def stadiums():
         "COUNT(m.match_id) as matches, ROUND(AVG(m.attendance)) as avg_att, "
         "ROUND(AVG(m.attendance*100.0/s.capacity),1) as utilization "
         "FROM stadiums s LEFT JOIN matches m ON s.stadium_id=m.stadium_id "
-        "WHERE m.attendance IS NOT NULL GROUP BY s.stadium_id ORDER BY avg_att DESC", DB_2026
+        "WHERE m.attendance IS NOT NULL GROUP BY s.stadium_id ORDER BY avg_att DESC",
+        DB_2026,
     )
     return jsonify(data)
 
@@ -91,7 +102,8 @@ def teams():
         "SUM(CASE WHEN m.home_team_id=t.team_id THEN m.home_score ELSE m.away_score END) as gf, "
         "SUM(CASE WHEN m.home_team_id=t.team_id THEN m.away_score ELSE m.home_score END) as ga "
         "FROM teams t JOIN matches m ON t.team_id IN (m.home_team_id, m.away_team_id) "
-        "GROUP BY t.team_id ORDER BY wins DESC, gf-ga DESC", DB_2026
+        "GROUP BY t.team_id ORDER BY wins DESC, gf-ga DESC",
+        DB_2026,
     )
     return jsonify(data)
 
@@ -103,7 +115,8 @@ def knockout():
         "m.away_score, t2.name as away, m.home_penalty, m.away_penalty, m.extra_time "
         "FROM matches m JOIN teams t1 ON m.home_team_id=t1.team_id "
         "JOIN teams t2 ON m.away_team_id=t2.team_id "
-        "WHERE m.round != 'Group Stage' ORDER BY m.match_number", DB_2026
+        "WHERE m.round != 'Group Stage' ORDER BY m.match_number",
+        DB_2026,
     )
     return jsonify(data)
 
@@ -115,7 +128,8 @@ def group(letter):
         "gs.goals_for, gs.goals_against, gs.goal_diff, gs.points "
         "FROM group_standings gs JOIN teams t ON gs.team_id=t.team_id "
         "JOIN groups g ON gs.group_id=g.group_id WHERE g.group_letter=? ORDER BY gs.pos",
-        DB_2026, (letter.upper(),),
+        DB_2026,
+        (letter.upper(),),
     )
     return jsonify(data)
 

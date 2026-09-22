@@ -11,14 +11,12 @@
 import json
 import sqlite3
 from pathlib import Path
-from typing import Tuple, Dict, Any, List
 
-import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import cross_val_score, StratifiedKFold, train_test_split
+from sklearn.metrics import classification_report
+from sklearn.model_selection import StratifiedKFold, cross_val_score, train_test_split
 from sklearn.preprocessing import LabelEncoder
-from sklearn.metrics import classification_report, confusion_matrix
 
 BASE = Path(__file__).parent.parent
 WC_DB = BASE / "data" / "worldcup.db"
@@ -32,13 +30,15 @@ def _conn(db):
 def load_training_data():
     conn = _conn(HIST_DB)
     matches = pd.read_sql("SELECT * FROM matches", conn)
-    teams = pd.read_sql("SELECT * FROM teams", conn)
     conn.close()
 
     matches = matches.rename(columns={"home_team": "home", "away_team": "away"})
     matches["label"] = matches.apply(
-        lambda r: "home_win" if r["home_score"] > r["away_score"]
-        else ("away_win" if r["away_score"] > r["home_score"] else "draw"),
+        lambda r: (
+            "home_win"
+            if r["home_score"] > r["away_score"]
+            else ("away_win" if r["away_score"] > r["home_score"] else "draw")
+        ),
         axis=1,
     )
 
@@ -55,18 +55,20 @@ def load_training_data():
 
         is_knockout = 1 if r["round"] != "Group Stage" else 0
 
-        rows.append({
-            "home": h,
-            "away": a,
-            "is_knockout": is_knockout,
-            "home_win_rate": hs["wins"] / max(hs["total"], 1),
-            "away_win_rate": aws["wins"] / max(aws["total"], 1),
-            "home_avg_gf": hs["gf"] / max(hs["total"], 1),
-            "away_avg_gf": aws["gf"] / max(aws["total"], 1),
-            "home_avg_ga": hs["ga"] / max(hs["total"], 1),
-            "away_avg_ga": aws["ga"] / max(aws["total"], 1),
-            "label": r["label"],
-        })
+        rows.append(
+            {
+                "home": h,
+                "away": a,
+                "is_knockout": is_knockout,
+                "home_win_rate": hs["wins"] / max(hs["total"], 1),
+                "away_win_rate": aws["wins"] / max(aws["total"], 1),
+                "home_avg_gf": hs["gf"] / max(hs["total"], 1),
+                "away_avg_gf": aws["gf"] / max(aws["total"], 1),
+                "home_avg_ga": hs["ga"] / max(hs["total"], 1),
+                "away_avg_ga": aws["ga"] / max(aws["total"], 1),
+                "label": r["label"],
+            }
+        )
 
         hs["total"] += 1
         aws["total"] += 1
@@ -92,12 +94,14 @@ def load_training_data():
     for row in rows:
         row["home_conf"] = team_conf.get(row["home"], "UEFA")
         row["away_conf"] = team_conf.get(row["away"], "UEFA")
-        row["rank_diff"] = team_rank.get(row["home"], 50) - team_rank.get(row["away"], 50)
+        row["rank_diff"] = team_rank.get(row["home"], 50) - team_rank.get(
+            row["away"], 50
+        )
 
     return pd.DataFrame(rows), team_conf, team_rank
 
 
-def train_model(cv_folds: int = 5) -> Tuple:
+def train_model(cv_folds: int = 5) -> tuple:
     df, team_conf, team_rank = load_training_data()
 
     le_home = LabelEncoder()
@@ -106,9 +110,16 @@ def train_model(cv_folds: int = 5) -> Tuple:
     df["away_conf_enc"] = le_away.fit_transform(df["away_conf"])
 
     features = [
-        "is_knockout", "home_win_rate", "away_win_rate",
-        "home_avg_gf", "away_avg_gf", "home_avg_ga", "away_avg_ga",
-        "home_conf_enc", "away_conf_enc", "rank_diff",
+        "is_knockout",
+        "home_win_rate",
+        "away_win_rate",
+        "home_avg_gf",
+        "away_avg_gf",
+        "home_avg_ga",
+        "away_avg_ga",
+        "home_conf_enc",
+        "away_conf_enc",
+        "rank_diff",
     ]
     X = df[features].fillna(0)
     y = df["label"]
@@ -141,7 +152,9 @@ def train_model(cv_folds: int = 5) -> Tuple:
     if cv_folds_actual >= 2:
         cv = StratifiedKFold(n_splits=cv_folds_actual, shuffle=True, random_state=42)
         cv_scores = cross_val_score(model, X_train, y_train, cv=cv, scoring="accuracy")
-        print(f"CV Accuracy ({cv_folds_actual}-fold): {cv_scores.mean():.3f} (+/- {cv_scores.std() * 2:.3f})")
+        print(
+            f"CV Accuracy ({cv_folds_actual}-fold): {cv_scores.mean():.3f} (+/- {cv_scores.std() * 2:.3f})"
+        )
     else:
         print("Skipping CV: insufficient samples per class")
 
@@ -155,10 +168,9 @@ def train_model(cv_folds: int = 5) -> Tuple:
     print(classification_report(y_test, y_pred, zero_division=0))
 
     # Feature importance
-    importance = pd.DataFrame({
-        "feature": features,
-        "importance": model.feature_importances_
-    }).sort_values("importance", ascending=False)
+    importance = pd.DataFrame(
+        {"feature": features, "importance": model.feature_importances_}
+    ).sort_values("importance", ascending=False)
     print("\nFeature Importance:")
     print(importance.to_string(index=False))
 
@@ -191,11 +203,13 @@ def predict_match(home_team, away_team):
                 is_home = r["home"] == name
                 gf += r["home_score"] if is_home else r["away_score"]
                 ga += r["away_score"] if is_home else r["home_score"]
-                if (is_home and r["home_score"] > r["away_score"]) or \
-                   (not is_home and r["away_score"] > r["home_score"]):
+                if (is_home and r["home_score"] > r["away_score"]) or (
+                    not is_home and r["away_score"] > r["home_score"]
+                ):
                     wins += 1
         return {
-            "wins": wins, "total": total,
+            "wins": wins,
+            "total": total,
             "gf": gf / max(total, 1),
             "ga": ga / max(total, 1),
             "win_rate": wins / max(total, 1),
@@ -216,18 +230,23 @@ def predict_match(home_team, away_team):
     except ValueError:
         ac_enc = 0
 
-    X_pred = pd.DataFrame([{
-        "is_knockout": 0,
-        "home_win_rate": hs["win_rate"],
-        "away_win_rate": aws["win_rate"],
-        "home_avg_gf": hs["gf"],
-        "away_avg_gf": aws["gf"],
-        "home_avg_ga": hs["ga"],
-        "away_avg_ga": aws["ga"],
-        "home_conf_enc": hc_enc,
-        "away_conf_enc": ac_enc,
-        "rank_diff": team_rank.get(home_team, 50) - team_rank.get(away_team, 50),
-    }])
+    X_pred = pd.DataFrame(
+        [
+            {
+                "is_knockout": 0,
+                "home_win_rate": hs["win_rate"],
+                "away_win_rate": aws["win_rate"],
+                "home_avg_gf": hs["gf"],
+                "away_avg_gf": aws["gf"],
+                "home_avg_ga": hs["ga"],
+                "away_avg_ga": aws["ga"],
+                "home_conf_enc": hc_enc,
+                "away_conf_enc": ac_enc,
+                "rank_diff": team_rank.get(home_team, 50)
+                - team_rank.get(away_team, 50),
+            }
+        ]
+    )
 
     proba = model.predict_proba(X_pred)[0]
     classes = model.classes_.tolist()
@@ -254,7 +273,10 @@ def predict_match(home_team, away_team):
 
 def get_all_teams():
     conn = _conn(WC_DB)
-    teams = pd.read_sql("SELECT name, fifa_ranking, confederation FROM teams ORDER BY fifa_ranking", conn)
+    teams = pd.read_sql(
+        "SELECT name, fifa_ranking, confederation FROM teams ORDER BY fifa_ranking",
+        conn,
+    )
     conn.close()
     return teams.to_dict("records")
 
@@ -267,7 +289,7 @@ def export_predictions(output_path=None):
     teams = [t["name"] for t in get_all_teams()[:16]]
     predictions = []
     for i, h in enumerate(teams):
-        for a in teams[i + 1:]:
+        for a in teams[i + 1 :]:
             try:
                 pred = predict_match(h, a)
                 predictions.append(pred)
