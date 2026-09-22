@@ -482,6 +482,39 @@ def update_prediction(n_clicks, home, away):
     ])
 
 
+RADAR_CATEGORIES = ["Ranking FIFA", "Win Rate", "Goles/Partido", "Diferencia", "Puntos"]
+RADAR_NEON = ["#e94560", "#00ffcc", "#FFD700", "#54a0ff"]
+
+
+def normalize_radar(perf):
+    """Normaliza cada eje 0-100 por min-max entre los equipos seleccionados.
+
+    Ejes: ranking FIFA (invertido), win rate, goles/partido, diferencia, puntos.
+    Columna constante -> 50 para no romper la forma.
+    """
+    import pandas as pd
+
+    df = perf.copy()
+    df["_winrate"] = df["wins"] / df["played"].clip(lower=1)
+    df["_gpp"] = df["gf"] / df["played"].clip(lower=1)
+    df["_diff"] = df["gf"] - df["ga"]
+    df["_pts"] = df["wins"] * 3 + df["draws"]
+    cols = {"Ranking FIFA": -df["fifa_ranking"].astype(float),
+            "Win Rate": df["_winrate"].astype(float),
+            "Goles/Partido": df["_gpp"].astype(float),
+            "Diferencia": df["_diff"].astype(float),
+            "Puntos": df["_pts"].astype(float)}
+    out = {}
+    for _, row in df.iterrows():
+        vals = []
+        for cat in RADAR_CATEGORIES:
+            s = cols[cat]
+            lo, hi = float(s.min()), float(s.max())
+            vals.append(50.0 if hi == lo else round((float(s.loc[row.name]) - lo) / (hi - lo) * 100, 1))
+        out[row["name"]] = vals
+    return out
+
+
 def compare_tab():
     return html.Div([
         card("Comparar Equipos — Radar Chart", [
@@ -521,23 +554,30 @@ def update_comparison(selected):
     if perf.empty:
         return card("No hay datos", html.P(""))
 
-    categories = ["Ranking (inv)", "Victoria GF", "Goles a favor", "Diferencia GF-GA", "Puntos"]
+    normed = normalize_radar(perf)
+    raw = {r["name"]: r for _, r in perf.iterrows()}
     fig_radar = go.Figure()
-    for _, row in perf.iterrows():
-        max_rank = perf["fifa_ranking"].max() or 100
-        vals = [
-            (1 - row["fifa_ranking"] / max_rank) * 100 if row["fifa_ranking"] else 50,
-            row["wins"] / max(row["played"], 1) * 100,
-            row["gf"] / max(row["played"], 1) * 20,
-            max(row["gf"] - row["ga"], 0) * 5,
-            row["wins"] * 3 + row["draws"],
-        ]
-        fig_radar.add_trace(go.Scatterpolar(r=vals + [vals[0]], theta=categories + [categories[0]],
-                                             fill="toself", name=row["name"]))
+    for i, (name, vals) in enumerate(normed.items()):
+        r = raw[name]
+        color = RADAR_NEON[i % len(RADAR_NEON)]
+        fig_radar.add_trace(go.Scatterpolar(
+            r=vals + [vals[0]], theta=RADAR_CATEGORIES + [RADAR_CATEGORIES[0]],
+            fill="toself", name=name,
+            fillcolor=color.replace(")", ",0.15)").replace("rgb", "rgba") if color.startswith("rgb") else color,
+            opacity=0.85,
+            line=dict(color=color, width=3),
+            hovertemplate=(
+                f"<b>{name}</b> (FIFA #{int(r['fifa_ranking']) if r['fifa_ranking'] else '?'})<br>"
+                + "%{theta}: %{r:.0f}/100<br>"
+                + f"GF {int(r['gf'])} · GA {int(r['ga'])} · {int(r['wins'])}V {int(r['draws'])}E<extra></extra>"
+            ),
+        ))
     fig_radar.update_layout(
-        polar=dict(bgcolor="rgba(0,0,0,0)", radialaxis=dict(visible=True, range=[0, 100])),
-        paper_bgcolor="rgba(0,0,0,0)", font_color=COLORS["text"], height=450,
-        legend=dict(font=dict(color=COLORS["text"])),
+        polar=dict(bgcolor="rgba(0,0,0,0)", radialaxis=dict(visible=True, range=[0, 100], gridcolor="#2a2a4a", tickfont=dict(size=11)),
+                   angularaxis=dict(gridcolor="#2a2a4a", tickfont=dict(size=13))),
+        paper_bgcolor="rgba(0,0,0,0)", font_color=COLORS["text"], height=520,
+        title={"text": "Radar — ejes normalizados 0-100 entre los equipos elegidos", "font": {"size": 13, "color": COLORS["muted"]}},
+        legend=dict(font=dict(color=COLORS["text"], size=13)),
     )
 
     fig_bar = go.Figure()
