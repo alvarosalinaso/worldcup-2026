@@ -46,10 +46,10 @@ awards          ← Balón de Oro, Bota de Oro, Guante de Oro, Fair Play
 
 | Qué | Cómo | Para qué |
 |-----|------|----------|
-| Limpieza e ingesta | `seed_data.py` | Meter los datos reales en SQLite |
+| Limpieza e ingesta | `seed_data.py` | Generar los datos **simulados** del Mundial 2026 en SQLite |
 | 16 consultas analíticas | `queries.py` + Pandas | Responder las preguntas de arriba |
 | Clustering | K-Means | Agrupar estadios por patrones de uso |
-| Forecasting | ARIMA | Predecir asistencia en futuros eventos |
+| Forecasting | ARIMA | Ilustrativo: requiere serie histórica suficiente (≥5 obs); con la asistencia por mundial actual (n=3) se omite y se documenta |
 | Ranking compuesto | Z-scores | Comparar estadios de forma justa |
 | Monte Carlo (N=1000) | Simulación estocástica | Ver qué tan sensibles son los resultados |
 | Correlaciones | Pearson | Encontrar relaciones entre variables |
