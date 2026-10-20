@@ -54,6 +54,23 @@ awards          ← Balón de Oro, Bota de Oro, Guante de Oro, Fair Play
 
 ---
 
+## Datos reales del torneo (openfootball, CC0)
+
+El Mundial 2026 ya se disputó (junio-julio 2026). Los resultados **reales** de
+los 104 partidos (grupos A-L, octavos, cuartos, semis, 3er lugar y final) viven
+en `data/worldcup_real.db`, tabla `matches_real`, separados de la base simulada
+`data/worldcup.db` (escenario proyectado pre-torneo, intacta).
+
+- **Fuente**: [openfootball/worldcup → `2026--canada-usa-mexico`](https://github.com/openfootball/worldcup/tree/master/2026--canada-usa-mexico) (formato Football.TXT)
+- **Licencia**: [CC0-1.0](https://github.com/openfootball/worldcup/blob/master/LICENSE.md) (dominio público; la citamos aunque la CC0 no lo exige)
+- **Reproducción**: `python src/ingest_real_data.py` descarga (si faltan) los `.txt`
+  a `data/openfootball/`, los parsea, valida invariantes (104 partidos, 72 de
+  grupos, 308 goles marcadores, final España 1-0 Argentina en prórroga) y reescribe
+  `data/worldcup_real.db` con la procedencia (URL, commit fijado, sha256 de los
+  archivos) en la tabla `meta`. Los `.txt` están en el repo para correr offline.
+
+---
+
 ## Lo que encontré (en la simulación)
 
 El Mundial 2026 simulado fue, en números, una bestia: **6,8 millones de asistentes** en 104 partidos. **España se coronó campeón venciendo a Argentina 1-0 en la final (tiempo extra)**, y Mbappé se quedó con la Bota de Oro de 10 goles **en este escenario proyectado**.
