@@ -68,6 +68,11 @@ en `data/worldcup_real.db`, tabla `matches_real`, separados de la base simulada
   grupos, 308 goles marcadores, final España 1-0 Argentina en prórroga) y reescribe
   `data/worldcup_real.db` con la procedencia (URL, commit fijado, sha256 de los
   archivos) en la tabla `meta`. Los `.txt` están en el repo para correr offline.
+- **Contraste oficial**: los resultados reales se verificaron contra la API de FIFA
+  (`api.fifa.com`, temporada 285023): final y 3er lugar coinciden, 32 marcadores de
+  eliminatoria idénticos, 104 partidos y 308 goles en ambas fuentes. Ledger con
+  URL y fecha de acceso: [`data/contrast_ledger.md`](data/contrast_ledger.md)
+  (regenerable con `python src/verify_against_fifa.py`).
 
 ---
 
