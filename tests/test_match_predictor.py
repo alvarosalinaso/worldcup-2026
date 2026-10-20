@@ -6,6 +6,7 @@ from pathlib import Path
 import pandas as pd
 
 from src.match_predictor import (
+    evaluate_predictor,
     get_all_teams,
     load_training_data,
     predict_match,
@@ -382,15 +383,65 @@ def test_load_training_data(tmp_path, monkeypatch):
     assert len(df) > 0
     assert "label" in df.columns
     assert "home_win_rate" in df.columns
+    # rank_diff es la diferencia de ranking histórico (posición de competición)
+    # calculada solo con partidos previos; sin leakage del ranking FIFA 2026.
     assert "rank_diff" in df.columns
+    assert df["rank_diff"].notna().all()
+    assert (df["rank_diff"] != 0).any()
+    # columnas de contexto temporal y confederación
+    assert "year" in df.columns
+    assert "home_conf" in df.columns
     assert isinstance(team_conf, dict)
     assert isinstance(team_rank, dict)
     assert "Argentina" in team_conf
-    assert team_rank["Argentina"] == 1
+    # team_rank mapea equipo -> posición histórica; sin historial -> neutral.
+    assert "Argentina" in team_rank
+    assert team_rank["Argentina"] >= 1
+
+
+def test_rank_diff_uses_no_2026_ranking(tmp_path, monkeypatch):
+    """A2: rank_diff no depende del ranking FIFA 2026 (worldcup.db)."""
+    hist_db, wc_db = _setup_databases(tmp_path)
+
+    import src.match_predictor as mp
+
+    monkeypatch.setattr(mp, "HIST_DB", Path(hist_db))
+    monkeypatch.setattr(mp, "WC_DB", Path(wc_db))
+    df_a, _, _ = load_training_data()
+
+    # Mutamos el ranking FIFA 2026 del equipo; rank_diff no debe cambiar.
+    conn = sqlite3.connect(wc_db)
+    conn.execute(
+        "UPDATE teams SET fifa_ranking = CASE WHEN name='Argentina' THEN 99 ELSE 1 END"
+    )
+    conn.commit()
+    conn.close()
+    df_b, _, _ = load_training_data()
+
+    assert df_a["rank_diff"].tolist() == df_b["rank_diff"].tolist()
+
+
+def test_unknown_confederation_not_uefa(tmp_path, monkeypatch):
+    """A2: un equipo sin confederación conocida no se asume UEFA."""
+    hist_db, wc_db = _setup_databases(tmp_path)
+
+    import src.match_predictor as mp
+
+    monkeypatch.setattr(mp, "HIST_DB", Path(hist_db))
+    monkeypatch.setattr(mp, "WC_DB", Path(wc_db))
+
+    # Chile juega en el histórico pero no está en la tabla teams -> conf UNKNOWN.
+    df, team_conf, team_rank = load_training_data()
+    chile_rows = df[(df["home"] == "Chile") | (df["away"] == "Chile")]
+    assert not chile_rows.empty
+    assert (chile_rows["home_conf"] == "UNKNOWN").any() or (
+        chile_rows["away_conf"] == "UNKNOWN"
+    ).any()
+    assert team_conf.get("Chile", "UNKNOWN") == "UNKNOWN"
 
 
 def test_train_model(tmp_path, monkeypatch):
-    """Test model training with cross-validation."""
+    """Test model training con split temporal."""
     hist_db, wc_db = _setup_databases(tmp_path)
 
     import src.match_predictor as mp
@@ -405,6 +456,37 @@ def test_train_model(tmp_path, monkeypatch):
     assert "is_knockout" in features
     assert "rank_diff" in features
     assert hasattr(model, "predict_proba")
+    # UNKNOWN siempre codificado para no asumir confederación real.
+    assert "UNKNOWN" in le_home.classes_
+
+
+def test_evaluate_predictor_reports_metrics(tmp_path, monkeypatch):
+    """Brier/log-loss/calibración y baseline Poisson sobre split temporal."""
+    hist_db, wc_db = _setup_databases(tmp_path)
+
+    import src.match_predictor as mp
+
+    monkeypatch.setattr(mp, "HIST_DB", Path(hist_db))
+    monkeypatch.setattr(mp, "WC_DB", Path(wc_db))
+
+    out = tmp_path / "metrics.json"
+    results = evaluate_predictor(output_path=out)
+
+    assert results["split"]["kind"] == "temporal"
+    assert results["split"]["n_train"] > 0
+    assert results["split"]["n_test"] > 0
+    # el año más reciente queda fuera del entrenamiento (sin mezcla aleatoria)
+    assert max(results["split"]["train_years"]) < min(results["split"]["test_years"])
+
+    for name in ("model_random_forest", "baseline_poisson"):
+        block = results[name]
+        assert 0.0 <= block["brier_multiclass"] <= 2.0
+        assert block["log_loss"] >= 0.0
+        assert 0.0 <= block["accuracy"] <= 1.0
+        assert 0.0 <= block["calibration"]["ece"] <= 1.0
+        assert isinstance(block["calibration"]["bins"], dict)
+
+    assert out.exists()
 
 
 def test_predict_match(tmp_path, monkeypatch):
