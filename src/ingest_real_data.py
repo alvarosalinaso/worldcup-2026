@@ -5,7 +5,7 @@ Descarga (si faltan) y parsea los archivos Football.TXT del dataset
 ``data/worldcup_real.db`` con la tabla ``matches_real``: los 104 partidos
 reales (grupos A-L, octavos, cuartos, semis, 3er lugar y final).
 
-La base simulada (``data/worldcup.db``) queda intacta; ambas conviven y se
+La base principal (``data/worldcup.db``) queda intacta; ambas conviven y se
 etiquetan por separado (ver README). Este script solo escribe en
 ``data/worldcup_real.db``.
 
@@ -42,7 +42,7 @@ LICENSE_URL = f"https://github.com/{UPSTREAM_REPO}/blob/{UPSTREAM_REF}/LICENSE.m
 FILES = ("cup.txt", "cup_finals.txt")
 TOURNAMENT_YEAR = 2026
 
-# Vocabulario de fases alineado con data/worldcup.db (base simulada) para poder comparar.
+# Vocabulario de fases alineado con data/worldcup.db (base principal) para poder comparar.
 STAGE_MAP = {
     "Round of 32": "Round of 32",
     "Round of 16": "Round of 16",

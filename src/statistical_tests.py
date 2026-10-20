@@ -40,7 +40,7 @@ def run_statistical_tests(
                 "p_value": round(p, 6),
                 "significant": bool(p < 0.05),
                 "note": (
-                    "n muy pequeno (sedes del mundial simulado): el p-valor es "
+                    "n muy pequeno (sedes del Mundial 2026): el p-valor es "
                     "indicativo, no concluyente."
                 ),
             }

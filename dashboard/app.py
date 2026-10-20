@@ -198,12 +198,13 @@ app.layout = html.Div(
                         "fontSize": "0.9rem",
                     },
                     children=(
-                        "⚠️ Los datos del Mundial 2026 de este tablero "
+                        "ℹ️ Los datos del Mundial 2026 de este tablero "
                         "(worldcup.db: 104 partidos, 308 goles, campeón, "
-                        "goleadores) son SIMULADOS (generados por seed_data.py). "
-                        "Son un ejercicio ilustrativo, no resultados reales. "
-                        "El torneo real (openfootball, CC0) está en "
-                        "data/worldcup_real.db."
+                        "goleadores) reproducen los resultados REALES del "
+                        "torneo (contraste en data/contrast_ledger.md). "
+                        "Excepción: asistencia de grupos = aforo del estadio; "
+                        "nombres de goleadores de grupos sin verificar. "
+                        "Copia en openfootball (CC0): data/worldcup_real.db."
                     ),
                 ),
                 html.Div(
@@ -445,7 +446,7 @@ def overview_tab():
             text=goals,
             textposition="outside",
             marker_color=[COLORS["muted"]] * 3 + [COLORS["accent"]],
-            # 2026 es SIMULADO (worldcup.db); 2014-2022 son datos históricos.
+            # 2026 = resultados reales post-torneo; 2014-2022 = datos históricos.
             name="goles por edición",
             hovertemplate="%{x}: %{y} goles<extra></extra>",
         )
@@ -460,7 +461,7 @@ def overview_tab():
             dict(
                 x=2026,
                 y=max(goals) if goals else 0,
-                text="2026 = SIMULADO<br>(308 goles, no reales)",
+                text="2026 = resultados reales<br>(308 goles, torneo disputado)",
                 showarrow=False,
                 yshift=18,
                 font=dict(color=COLORS["accent"], size=11),
@@ -511,7 +512,7 @@ def overview_tab():
                         insight_card(
                             "¿Metodología?",
                             "SQLite + queries auditadas + ML honesto (split temporal, sin "
-                            "leakage, con baseline Poisson) sobre datos SIMULADOS del 2026.",
+                            "leakage, con baseline Poisson) sobre datos reales del 2026.",
                             COLORS["neon_green"],
                         ),
                         insight_card(
@@ -532,7 +533,7 @@ def overview_tab():
                 dcc.Graph(figure=fig_avg, config={"displayModeBar": False}),
             ),
             card(
-                "Top 5 goleadores 2026 (SIMULADO)",
+                "Top 5 goleadores 2026",
                 dash_table.DataTable(
                     data=top.to_dict("records"),
                     columns=[{"name": c, "id": c} for c in ["scorer", "team", "goals"]],

@@ -1,9 +1,17 @@
 """Crea y puebla la base de datos SQLite del Mundial 2026.
 
-⚠️ ADVERTENCIA: Los datos insertados aquí son SIMULADOS/PROYECTADOS.
-El Mundial 2026 no se ha disputado aún. Este dataset modela un escenario
-posible basado en rankings FIFA, formato de 48 equipos y datos históricos
-2014-2022. NO son resultados reales.
+Procedencia (auditoría 2026-10): script escrito DESPUÉS del torneo
+(commit 2026-07-29; la final fue el 2026-07-19). Los fixtures, fechas,
+sedes, grupos, marcadores, penales y premios reproducen los resultados
+REALES del torneo, contrastados con openfootball (CC0,
+data/worldcup_real.db) y la API de FIFA (data/contrast_ledger.md).
+
+Campos NO oficiales generados aquí:
+- matches.attendance: en fase de grupos es el aforo del estadio
+  (en eliminatorias sí coincide con la asistencia oficial de FIFA).
+- goals.scorer en fase de grupos: nombres no verificados; la auditoría
+  encontró discrepancias vs openfootball/reportes de FIFA (los totales
+  por partido sí cuadran con el marcador).
 """
 
 import os
