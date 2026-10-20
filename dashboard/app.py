@@ -19,6 +19,10 @@ DB_HIST = os.path.join(
 DB_2026 = os.path.join(
     os.path.dirname(os.path.dirname(__file__)), "data", "worldcup.db"
 )
+# Datos REALES del Mundial 2026 (openfootball, CC0) — solo de referencia.
+DB_2026_REAL = os.path.join(
+    os.path.dirname(os.path.dirname(__file__)), "data", "worldcup_real.db"
+)
 
 app = dash.Dash(
     __name__,
@@ -179,6 +183,28 @@ app.layout = html.Div(
                 html.P(
                     "Dashboard interactivo - Comparación de ediciones",
                     style={"color": COLORS["muted"], "marginTop": "8px"},
+                ),
+                # Banner global: aclara la naturaleza de los datos del tablero.
+                html.Div(
+                    style={
+                        "background": "#3a1a1a",
+                        "border": f"1px solid {COLORS['accent']}",
+                        "color": "#ffd0d0",
+                        "padding": "10px 16px",
+                        "marginTop": "16px",
+                        "borderRadius": "8px",
+                        "display": "inline-block",
+                        "maxWidth": "760px",
+                        "fontSize": "0.9rem",
+                    },
+                    children=(
+                        "⚠️ Los datos del Mundial 2026 de este tablero "
+                        "(worldcup.db: 104 partidos, 308 goles, campeón, "
+                        "goleadores) son SIMULADOS (generados por seed_data.py). "
+                        "Son un ejercicio ilustrativo, no resultados reales. "
+                        "El torneo real (openfootball, CC0) está en "
+                        "data/worldcup_real.db."
+                    ),
                 ),
                 html.Div(
                     style={
@@ -419,6 +445,9 @@ def overview_tab():
             text=goals,
             textposition="outside",
             marker_color=[COLORS["muted"]] * 3 + [COLORS["accent"]],
+            # 2026 es SIMULADO (worldcup.db); 2014-2022 son datos históricos.
+            name="goles por edición",
+            hovertemplate="%{x}: %{y} goles<extra></extra>",
         )
     )
     fig_goals.update_layout(
@@ -427,6 +456,16 @@ def overview_tab():
         font_color=COLORS["text"],
         height=350,
         margin=dict(t=30, b=30),
+        annotations=[
+            dict(
+                x=2026,
+                y=max(goals) if goals else 0,
+                text="2026 = SIMULADO<br>(308 goles, no reales)",
+                showarrow=False,
+                yshift=18,
+                font=dict(color=COLORS["accent"], size=11),
+            )
+        ],
     )
 
     fig_avg = go.Figure()
@@ -471,7 +510,8 @@ def overview_tab():
                         ),
                         insight_card(
                             "¿Metodología?",
-                            "SQLite + queries auditadas + ML con validación cruzada y disclaimers de simulación.",
+                            "SQLite + queries auditadas + ML honesto (split temporal, sin "
+                            "leakage, con baseline Poisson) sobre datos SIMULADOS del 2026.",
                             COLORS["neon_green"],
                         ),
                         insight_card(
@@ -492,7 +532,7 @@ def overview_tab():
                 dcc.Graph(figure=fig_avg, config={"displayModeBar": False}),
             ),
             card(
-                "Top 5 goleadores 2026",
+                "Top 5 goleadores 2026 (SIMULADO)",
                 dash_table.DataTable(
                     data=top.to_dict("records"),
                     columns=[{"name": c, "id": c} for c in ["scorer", "team", "goals"]],
