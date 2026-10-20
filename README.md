@@ -154,6 +154,11 @@ python api/server.py
 # http://localhost:5000
 ```
 
+## Captura
+
+TODO: captura de pantalla pendiente — correr `python src/generate_report.py`, abrir
+`docs/index.html` y capturar el banner de procedencia + los gráficos.
+
 ---
 
 ## Cómo correr esto
