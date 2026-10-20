@@ -156,8 +156,7 @@ python api/server.py
 
 ## Captura
 
-TODO: captura de pantalla pendiente — correr `python src/generate_report.py`, abrir
-`docs/index.html` y capturar el banner de procedencia + los gráficos.
+![Reporte estático del Mundial 2026](docs/screenshot.png)
 
 ---
 
