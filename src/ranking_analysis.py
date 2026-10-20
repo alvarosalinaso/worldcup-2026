@@ -27,7 +27,13 @@ def run_ranking(
         return {}
 
     df = pd.read_csv(csv_file, encoding="utf-8")
-    num_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+    # Coordenadas geograficas no son una metrica de calidad de sede: lat/lon
+    # no entran en el scoring compuesto (solo capacity/attendance).
+    num_cols = [
+        c
+        for c in df.select_dtypes(include=[np.number]).columns.tolist()
+        if c not in ("lat", "lon")
+    ]
     if len(num_cols) < 2:
         return {}
 

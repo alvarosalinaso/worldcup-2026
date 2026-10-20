@@ -1,57 +1,77 @@
 """
-Forecasting de asistencia y demanda para World Cup 2026.
-ARIMA + Holt-Winters para predecir patron de asistencia.
+Forecasting de asistencia para World Cup 2026.
+ARIMA sobre la serie historica de asistencia POR MUNDIAL (world_cups).
+Solo tiene sentido predecir una serie temporal real con eje temporal; por eso
+NO se aplica ARIMA a columnas estaticas (capacity, lat, lon).
 """
 
 import json
+import sqlite3
 from pathlib import Path
 
 try:
-    import numpy as np
     import pandas as pd
     from statsmodels.tsa.arima.model import ARIMA
-    from statsmodels.tsa.holtwinters import ExponentialSmoothing  # noqa: F401
 
     AVAILABLE = True
 except ImportError:
     AVAILABLE = False
 
 
+def _series_asistencia_historica(hist_db: Path) -> pd.Series:
+    """Asistencia total por anio de mundial desde historical.db (2014-2022)."""
+    if not hist_db.exists():
+        return pd.Series(dtype=float)
+    conn = sqlite3.connect(hist_db)
+    df = pd.read_sql(
+        "SELECT year, total_attendance FROM world_cups ORDER BY year", conn
+    )
+    conn.close()
+    if df.empty:
+        return pd.Series(dtype=float)
+    return pd.Series(df["total_attendance"].values, index=df["year"].astype(int))
+
+
 def run_forecasting(
-    data_dir: Path = Path("."), output_dir: Path = Path("data/export")
+    output_dir: Path = Path("data/export"),
+    hist_db: Path = Path("data/historical.db"),
 ) -> dict:
     if not AVAILABLE:
         print("[FORECAST] statsmodels no instalado")
         return {}
 
-    csv_file = data_dir / "dw_asistencia_sedes.csv"
-    if not csv_file.exists():
-        return {}
+    ts = _series_asistencia_historica(hist_db).dropna()
+    # ARIMA necesita historia suficiente; con <5 observaciones es insensato.
+    if len(ts) < 5:
+        print(
+            f"[FORECAST] solo {len(ts)} observaciones historicas de asistencia; "
+            "no hay serie suficiente para ARIMA (se omiten predicciones)"
+        )
+        results = {
+            "note": (
+                "Sin forecast: la asistencia historica por mundial tiene "
+                f"{len(ts)} observaciones, insuficiente para ARIMA."
+            ),
+            "series": {int(k): int(v) for k, v in ts.items()},
+        }
+        output_dir.mkdir(parents=True, exist_ok=True)
+        with open(output_dir / "forecasting_results.json", "w", encoding="utf-8") as f:
+            json.dump(results, f, ensure_ascii=False, indent=2)
+        return results
 
-    df = pd.read_csv(csv_file, encoding="utf-8")
-    num_cols = df.select_dtypes(include=[np.number]).columns.tolist()
-    if not num_cols:
+    try:
+        fit = ARIMA(ts.values, order=(1, 1, 0)).fit()
+        forecast = fit.forecast(steps=1)
+        results = {
+            "series": {int(k): int(v) for k, v in ts.items()},
+            "forecast_next_year": round(float(forecast[0]), 2),
+            "aic": round(float(fit.aic), 2),
+            "note": "Forecast ARIMA(1,1,0) sobre asistencia por mundial.",
+        }
+        print(f"[FORECAST] asistencia proximo mundial ~ {forecast[0]:,.0f}")
+    except Exception as e:
+        print(f"[FORECAST] error: {e}")
         return {}
-
-    results = {}
-    for col in num_cols:
-        ts = df[col].dropna()
-        if len(ts) < 5:
-            continue
-        try:
-            model = ARIMA(ts.values, order=(1, 1, 0))
-            fit = model.fit()
-            forecast = fit.forecast(steps=3)
-            results[col] = {
-                "forecast_next_3": [round(float(v), 2) for v in forecast],
-                "aic": round(float(fit.aic), 2),
-                "mean": round(float(ts.mean()), 2),
-            }
-            print(
-                f"[FORECAST] {col}: mean={ts.mean():.1f}, forecast={[round(float(v), 1) for v in forecast]}"
-            )
-        except Exception as e:
-            print(f"[FORECAST] {col} error: {e}")
 
     output_dir.mkdir(parents=True, exist_ok=True)
     with open(output_dir / "forecasting_results.json", "w", encoding="utf-8") as f:

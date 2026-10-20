@@ -30,7 +30,13 @@ def run_clustering(
         return {}
 
     df = pd.read_csv(csv_file, encoding="utf-8")
-    num_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+    # lat/lon son coordenadas, no caracteristicas operativas de la sede:
+    # se excluyen del clustering para no sesgar por ubicacion geografica.
+    num_cols = [
+        c
+        for c in df.select_dtypes(include=[np.number]).columns.tolist()
+        if c not in ("lat", "lon")
+    ]
     if len(num_cols) < 2:
         print("[CLUSTER] Need >= 2 numeric columns")
         return {}
