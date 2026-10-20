@@ -6,8 +6,9 @@ Dashboard interactivo del Mundial FIFA 2026 con datos históricos y simulados, A
 ## Componentes principales
 
 ### Datos
-- `data/historical.db` — SQLite con datos históricos de mundiales (1930-2022)
-- `data/worldcup.db` — SQLite con datos simulados del Mundial 2026
+- `data/historical.db` — SQLite con datos históricos de mundiales (2014-2022: 3 torneos, 48 partidos de eliminatorias)
+- `data/worldcup.db` — SQLite con datos **simulados** del Mundial 2026 (generados por `src/seed_data.py`, no son resultados reales)
+- `data/worldcup_real.db` — SQLite con el torneo **real** 2026 (openfootball, CC0) y `data/openfootball/` con las fuentes fijadas
 - `src/seed_data.py` — Inicialización y poblamiento de bases de datos
 
 ### Backend (API)

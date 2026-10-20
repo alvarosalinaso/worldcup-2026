@@ -1,6 +1,8 @@
 # Mundial 2026 — Análisis con datos simulados del torneo (Proyección)
 
-> ⚠️ **AVISO IMPORTANTE**: Los datos del Mundial 2026 en este proyecto son **simulados/proyectados**, no reales. El torneo no se ha disputado aún (programado para junio-julio 2026). Este proyecto es un ejercicio de análisis de datos que modela cómo *podría* verse el torneo basándose en rankings FIFA, formato de 48 equipos y datos históricos 2014-2022.
+> ⚠️ **AVISO IMPORTANTE — DATOS SIMULADOS**: El torneo de este proyecto (`data/worldcup.db`, 104 partidos) es una **simulación/proyección**, no datos reales. El archivo no incluye resultados verificables del Mundial 2026: los partidos, marcadores, goleadores y asistencias fueron **generados por el script `src/seed_data.py`** a partir de rankings FIFA, el formato de 48 equipos y datos históricos 2014-2022.
+>
+> Por eso cualquier cifra derivada de esa base (308 goles simulados, asistencia total, "campeón" del torneo, métricas del predictor, clustering, Monte Carlo) es un **ejercicio ilustrativo**, no una medición del torneo real. Los datos reales (openfootball, CC0) viven aparte, en `data/worldcup_real.db` y `data/openfootball/`.
 
 Después de que España levantara la copa en MetLife **en esta simulación**, me quedé con la duda: ¿qué tan diferente fue este Mundial de 48 selecciones comparado con los anteriores? Armé este proyecto para responder eso con datos, no con opiniones.
 
@@ -26,7 +28,7 @@ Todo empezó con cosas que quería saber y no encontraba fáciles de responder:
 
 ## Qué hay aquí
 
-Una base de datos SQLite con todo el torneo: 48 selecciones, 16 estadios, 104 partidos, 285 goles. Después, un montón de consultas SQL que van desde "quién hizo más goles" hasta análisis de clustering y sensibilidad.
+Una base de datos SQLite con todo el torneo **simulado**: 48 selecciones, 16 estadios, 104 partidos, 308 goles (todos generados por `seed_data.py`, no son resultados reales). Después, un montón de consultas SQL que van desde "quién hizo más goles" hasta análisis de clustering y sensibilidad.
 
 ### Esquema de la base de datos
 
@@ -195,7 +197,7 @@ worldcup-2026/
 - 16 estadios en USA, México y Canadá
 - 12 grupos (A a L) con posiciones
 - 104 partidos con marcador, asistencia y si hubo tiempo extra/penales
-- 285 goles con goleador y equipo
+- 308 goles con goleador y equipo
 - Datos históricos de los Mundiales 2014, 2018 y 2022
 
 ---
