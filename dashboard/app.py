@@ -19,7 +19,7 @@ DB_HIST = os.path.join(
 DB_2026 = os.path.join(
     os.path.dirname(os.path.dirname(__file__)), "data", "worldcup.db"
 )
-# Datos REALES del Mundial 2026 (openfootball, CC0) — solo de referencia.
+# Datos REALES del Mundial 2026 (openfootball, CC0), solo de referencia.
 DB_2026_REAL = os.path.join(
     os.path.dirname(os.path.dirname(__file__)), "data", "worldcup_real.db"
 )
@@ -161,7 +161,7 @@ app.layout = html.Div(
         "fontFamily": "Segoe UI, sans-serif",
     },
     children=[
-        # Header — neon abstract data-art poster
+        # Header, neon abstract data-art poster
         html.Div(
             style={
                 "background": "linear-gradient(135deg, #1a1a3e, #0d1b2a)",
@@ -501,7 +501,7 @@ def overview_tab():
                 ]
             ),
             card(
-                "Key Insights — Resumen ejecutivo",
+                "Key Insights, Resumen ejecutivo",
                 html.Div(
                     [
                         insight_card(
@@ -626,7 +626,7 @@ def goals_tab():
     return html.Div(
         [
             card(
-                "Goles por ronda — clic una barra para filtrar",
+                "Goles por ronda, clic una barra para filtrar",
                 html.Div(
                     [
                         dcc.Graph(
@@ -662,7 +662,7 @@ def goals_crossfilter(click):
     if not click:
         return no_update
     r = click["points"][0].get("x", "?")
-    return f"Ronda seleccionada: {r} — úsala para filtrar Eliminatorias y Equipos."
+    return f"Ronda seleccionada: {r}, úsala para filtrar Eliminatorias y Equipos."
 
 
 @callback(
@@ -674,7 +674,7 @@ def stadiums_crossfilter(click):
     if not click:
         return no_update
     s = click["points"][0].get("x", "?")
-    return f"Estadio seleccionado: {s} — ver sus partidos en Eliminatorias."
+    return f"Estadio seleccionado: {s}, ver sus partidos en Eliminatorias."
 
 
 @callback(
@@ -686,7 +686,7 @@ def teams_crossfilter(click):
     if not click:
         return no_update
     t = click["points"][0].get("x", "?")
-    return f"Equipo seleccionado: {t} — compáralo en el radar de Comparar Equipos."
+    return f"Equipo seleccionado: {t}, compáralo en el radar de Comparar Equipos."
 
 
 def stadiums_tab():
@@ -735,7 +735,7 @@ def stadiums_tab():
     return html.Div(
         [
             card(
-                "Asistencia vs Capacidad — clic un estadio para filtrar",
+                "Asistencia vs Capacidad, clic un estadio para filtrar",
                 html.Div(
                     [
                         dcc.Graph(
@@ -859,7 +859,7 @@ def teams_tab():
     return html.Div(
         [
             card(
-                "Rendimiento top 16 equipos — clic un equipo para filtrar",
+                "Rendimiento top 16 equipos, clic un equipo para filtrar",
                 html.Div(
                     [
                         dcc.Graph(
@@ -983,7 +983,7 @@ def predictions_tab():
     return html.Div(
         [
             card(
-                "Predicción de Partidos — Random Forest",
+                "Predicción de Partidos, Random Forest",
                 [
                     html.Div(
                         style={
@@ -1218,7 +1218,7 @@ def compare_tab():
     return html.Div(
         [
             card(
-                "Comparar Equipos — Radar Chart",
+                "Comparar Equipos, Radar Chart",
                 [
                     html.Div(
                         style={"marginBottom": "20px"},
@@ -1311,7 +1311,7 @@ def update_comparison(selected):
         font_color=COLORS["text"],
         height=520,
         title={
-            "text": "Radar — ejes normalizados 0-100 entre los equipos elegidos",
+            "text": "Radar, ejes normalizados 0-100 entre los equipos elegidos",
             "font": {"size": 13, "color": COLORS["muted"]},
         },
         legend=dict(font=dict(color=COLORS["text"], size=13)),

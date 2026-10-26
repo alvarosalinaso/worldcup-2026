@@ -1,8 +1,8 @@
-# Mundial 2026 — Análisis de los resultados reales del torneo (post-torneo)
+# Mundial 2026, Análisis de los resultados reales del torneo (post-torneo)
 
-> ℹ️ **PROCEDENCIA DE LOS DATOS (auditoría 2026-10)** — `data/worldcup.db` (104 partidos) fue construida **después** de disputado el torneo (junio–julio 2026; `src/seed_data.py` entró al repo el 2026-07-29, diez días después de la final) y **reproduce los resultados reales**: fixtures, fechas, sedes, grupos, marcadores, penales y premios oficiales. Las 104 alineaciones y marcadores son idénticos a `data/worldcup_real.db` (openfootball, CC0, 308 goles) y contrastan con la API oficial de FIFA ([`data/contrast_ledger.md`](data/contrast_ledger.md)).
+> ℹ️ **PROCEDENCIA DE LOS DATOS (revisión 2026-10)**, `data/worldcup.db` (104 partidos) fue construida **después** de disputado el torneo (junio–julio 2026; `src/seed_data.py` entró al repo el 2026-07-29, diez días después de la final) y **reproduce los resultados reales**: fixtures, fechas, sedes, grupos, marcadores, penales y premios oficiales. Las 104 alineaciones y marcadores son idénticos a `data/worldcup_real.db` (openfootball, CC0, 308 goles) y contrastan con la API oficial de FIFA ([`data/contrast_ledger.md`](data/contrast_ledger.md)).
 >
-> **Qué NO es oficial dentro de `worldcup.db`** (detalle en [Auditoría de campos](#auditoría-de-campos-auditoría-2026-10)): la asistencia de los 72 partidos de fase de grupos es el **aforo del estadio**, no la asistencia oficial (la de eliminatorias sí coincide con FIFA en 32/32), y los **nombres de goleadores de fase de grupos no son confiables** (54/72 discrepan de openfootball; verificaciones puntuales contra reportes de FIFA confirman errores). Todo lo demás —resultados, grupos, standings, premios— es real.
+> **Qué NO es oficial dentro de `worldcup.db`** (detalle en [Revisión de campos](#revisión-de-campos-revisión-2026-10)): la asistencia de los 72 partidos de fase de grupos es el **aforo del estadio**, no la asistencia oficial (la de eliminatorias sí coincide con FIFA en 32/32), y los **nombres de goleadores de fase de grupos no son confiables** (54/72 discrepan de openfootball; verificaciones puntuales contra reportes de FIFA confirman errores). Todo lo demás —resultados, grupos, standings, premios— es real.
 
 Después de que España levantara la copa en MetLife (1-0 en tiempo extra sobre Argentina), me quedé con la duda: ¿qué tan diferente fue este Mundial de 48 selecciones comparado con los anteriores? Armé este proyecto para responder eso con datos, no con opiniones.
 
@@ -28,7 +28,7 @@ Todo empezó con cosas que quería saber y no encontraba fáciles de responder:
 
 ## Qué hay aquí
 
-Una base de datos SQLite con todo el torneo: 48 selecciones, 16 estadios, 104 partidos, 308 goles — una reproducción post-torneo de los resultados reales (con las reservas de [Auditoría de campos](#auditoría-de-campos-auditoría-2026-10) para asistencia de grupos y goleadores de grupos). Después, un montón de consultas SQL que van desde "quién hizo más goles" hasta análisis de clustering y sensibilidad.
+Una base de datos SQLite con todo el torneo: 48 selecciones, 16 estadios, 104 partidos, 308 goles, una reproducción post-torneo de los resultados reales (con las reservas de [Revisión de campos](#revisión-de-campos-revisión-2026-10) para asistencia de grupos y goleadores de grupos). Después, un montón de consultas SQL que van desde "quién hizo más goles" hasta análisis de clustering y sensibilidad.
 
 ### Esquema de la base de datos
 
@@ -62,8 +62,8 @@ El Mundial 2026 se disputó (junio–julio 2026) y los resultados **reales** de 
 104 partidos (grupos A-L, octavos, cuartos, semis, 3er lugar y final) viven en dos
 copias dentro del repo:
 
-- `data/worldcup.db` — base principal, poblada por `src/seed_data.py` **después** del torneo, con los resultados ya conocidos.
-- `data/worldcup_real.db`, tabla `matches_real` — copia independiente ingesta durante la auditoría 2026-10 desde openfootball (commit upstream fijado). Es equivalente a `worldcup.db`: fixtures, fechas, grupos y marcadores idénticos (solo difieren en alias de nombres/venues: "USA" = "United States", etc.).
+- `data/worldcup.db`, base principal, poblada por `src/seed_data.py` **después** del torneo, con los resultados ya conocidos.
+- `data/worldcup_real.db`, tabla `matches_real`, copia independiente ingesta durante la revisión 2026-10 desde openfootball (commit upstream fijado). Es equivalente a `worldcup.db`: fixtures, fechas, grupos y marcadores idénticos (solo difieren en alias de nombres/venues: "USA" = "United States", etc.).
 
 Fuente común de ambas:
 
@@ -82,7 +82,7 @@ Fuente común de ambas:
 
 ---
 
-## Auditoría de campos (auditoría 2026-10)
+## Revisión de campos (revisión 2026-10)
 
 Qué campos de `data/worldcup.db` son datos oficiales y cuáles son generados/estimados:
 
@@ -90,11 +90,11 @@ Qué campos de `data/worldcup.db` son datos oficiales y cuáles son generados/es
 |---|---|---|
 | `matches` (fixtures, fechas, sedes, grupos, marcadores, penales, prórroga) | **Real** | 104/104 idénticos a openfootball (`worldcup_real.db`) y a la API FIFA (0 discrepancias de marcador) |
 | `group_standings` | **Real (derivado)** | recalculado desde los partidos: 0 discrepancias |
-| `awards` (9 premios) | **Real** | Rodri (Balón de Oro), Messi (Plata), Mbappé (Bronce + Bota, 10 goles), Simón (Guante), Cubarsí (Joven), Fair Play Países Bajos — verificados contra el anuncio oficial FIFA y prensa del 19-07-2026 |
+| `awards` (9 premios) | **Real** | Rodri (Balón de Oro), Messi (Plata), Mbappé (Bronce + Bota, 10 goles), Simón (Guante), Cubarsí (Joven), Fair Play Países Bajos, verificados contra el anuncio oficial FIFA y prensa del 19-07-2026 |
 | `matches.attendance` en eliminatorias (32 partidos) | **Real** | 32/32 idéntico al campo `Attendance` de la API FIFA |
 | `matches.attendance` en fase de grupos (72 partidos) | **Sintético (estimado)** | igual al aforo exacto del estadio en los 72; difiere de la asistencia oficial de FIFA en 29/72 (suma DB 6.825.316 vs oficial FIFA 6.810.966) |
 | `goals` (totales por partido y equipo) | **Real** | la suma de goles cuadra con el marcador en 104/104 partidos |
-| `goals.scorer` en eliminatorias | **Real en 31/32** | único error: cuartos Argentina 3-1 Suiza (la DB dice Messi; el gol real lo hizo Lautaro Martínez — FIFA/ESPN/AP) |
+| `goals.scorer` en eliminatorias | **Real en 31/32** | único error: cuartos Argentina 3-1 Suiza (la DB dice Messi; el gol real lo hizo Lautaro Martínez, FIFA/ESPN/AP) |
 | `goals.scorer` en fase de grupos | **No confiable** | 54/72 partidos tienen al menos un nombre distinto de openfootball; verificaciones puntuales vs reportes de FIFA confirman la DB está mal: MEX 1-0 KOR (real: Luis Romo; DB: Jiménez), USA 4-1 PAR (real: Bobadilla og, Balogun ×2, Reyna, Mauricio; DB: Tillman/Trusty/Enciso) |
 | `teams.debut` (4 debutantes) | **Real** | Jordania, Uzbekistán, Cabo Verde y Curazao |
 | `teams.fifa_ranking` | **Parcialmente verificado** | #1 Argentina = ranking FIFA del 10-06-2026 (previo al torneo); el resto de posiciones no se contrastó una a una |
@@ -108,11 +108,11 @@ contra la API FIFA (`src/verify_against_fifa.py`), y los goleadores contra los
 
 ## Lo que encontré
 
-El Mundial 2026 fue, en números, una bestia: **6,8 millones de asistentes** en 104 partidos (6.825.316 en la DB; la cifra oficial de FIFA suma 6.810.966 — la diferencia viene de la asistencia de grupos tomada como aforo). **España se coronó campeón venciendo a Argentina 1-0 en la final (tiempo extra)**, y Mbappé se quedó con la Bota de Oro de 10 goles.
+El Mundial 2026 fue, en números, una bestia: **6,8 millones de asistentes** en 104 partidos (6.825.316 en la DB; la cifra oficial de FIFA suma 6.810.966, la diferencia viene de la asistencia de grupos tomada como aforo). **España se coronó campeón venciendo a Argentina 1-0 en la final (tiempo extra)**, y Mbappé se quedó con la Bota de Oro de 10 goles.
 
 Lo más interesante: **Europa y Sudamérica dominaron los cuartos de final** con el 75% de los cupos, pese a que el torneo se amplió a 48 selecciones. Los debutantes no tuvieron un mal rendimiento, pero tampoco llegaron lejos.
 
-> **Nota**: los resultados, premios y goleadores de eliminatorias son los oficiales del torneo disputado. Las dos reservas de este dataset son la asistencia de fase de grupos (= aforo) y los nombres de goleadores de fase de grupos (sin verificar; ver [Auditoría de campos](#auditoría-de-campos-auditoría-2026-10)).
+> **Nota**: los resultados, premios y goleadores de eliminatorias son los oficiales del torneo disputado. Las dos reservas de este dataset son la asistencia de fase de grupos (= aforo) y los nombres de goleadores de fase de grupos (sin verificar; ver [Revisión de campos](#revisión-de-campos-revisión-2026-10)).
 
 ---
 
@@ -121,13 +121,13 @@ Lo más interesante: **Europa y Sudamérica dominaron los cuartos de final** con
 ### Bracket interactivo (Observable)
 
 <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;max-width:100%;">
-  <iframe src="https://observablehq.com/@alvarosalinaso/worldcup-bracket" title="Bracket — World Cup 2026" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" loading="lazy" allowfullscreen></iframe>
+  <iframe src="https://observablehq.com/@alvarosalinaso/worldcup-bracket" title="Bracket, World Cup 2026" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" loading="lazy" allowfullscreen></iframe>
 </div>
 
 ### Mapa de asistencia por sede (Datawrapper)
 
 <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;max-width:100%;">
-  <iframe src="https://datawrapper.dwcdn.net/HLIEG/" title="Asistencia por Sede — World Cup 2026" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" loading="lazy" allowfullscreen></iframe>
+  <iframe src="https://datawrapper.dwcdn.net/HLIEG/" title="Asistencia por Sede, World Cup 2026" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" loading="lazy" allowfullscreen></iframe>
 </div>
 
 ---
@@ -136,9 +136,9 @@ Lo más interesante: **Europa y Sudamérica dominaron los cuartos de final** con
 
 El proyecto tiene tres formas de ver los datos, cada una con su propósito:
 
-- **Reporte HTML estático** (`docs/index.html`) — Abre el archivo y listo, no necesita servidor. Bueno para un vistazo rápido.
-- **Dashboard Dash** (`dashboard/app.py`) — Más interactivo, con filtros y tabs. Ideal para explorar.
-- **API Flask** (`api/server.py`) — Si quieres construir tu propia visualización encima.
+- **Reporte HTML estático** (`docs/index.html`), Abre el archivo y listo, no necesita servidor. Bueno para un vistazo rápido.
+- **Dashboard Dash** (`dashboard/app.py`), Más interactivo, con filtros y tabs. Ideal para explorar.
+- **API Flask** (`api/server.py`), Si quieres construir tu propia visualización encima.
 
 ```bash
 # Reporte estático
@@ -236,10 +236,10 @@ worldcup-2026/
 
 ## Proyectos relacionados
 
-- [Manchester United Analysis](https://github.com/alvarosalinaso/manchester-united-analisis) — Análisis del rendimiento del United 2014-2024
-- [Passing Network Analysis](https://github.com/alvarosalinaso/united-passing-efficiency-24-25) — Red de pases y eficiencia del mediocampo
-- [Portfolio Web](https://github.com/alvarosalinaso/portfolio-web) — Mi portafolio personal
+- [Manchester United Analysis](https://github.com/alvarosalinaso/manchester-united-analisis), Análisis del rendimiento del United 2014-2024
+- [Passing Network Analysis](https://github.com/alvarosalinaso/united-passing-efficiency-24-25), Red de pases y eficiencia del mediocampo
+- [Portfolio Web](https://github.com/alvarosalinaso/portfolio-web), Mi portafolio personal
 
 ---
 
-**Álvaro Salinas** — Proyecto personal de análisis de datos deportivos
+**Álvaro Salinas**, Proyecto personal de análisis de datos deportivos

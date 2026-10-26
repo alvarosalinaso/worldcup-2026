@@ -1,4 +1,4 @@
-# Ledger de contraste FIFA (auditoría 2026-10)
+# Ledger de contraste FIFA (revisión 2026-10)
 
 Contraste de los resultados **reales** de `data/worldcup_real.db` (openfootball,
 CC0, commit upstream `4b8415d`) contra la fuente **oficial** FIFA: la API

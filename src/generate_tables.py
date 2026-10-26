@@ -20,7 +20,7 @@ def generate():
 
         tbl = (
             GT(top)
-            .tab_header(title="Top 5 Sedes — Asistencia World Cup 2026")
+            .tab_header(title="Top 5 Sedes, Asistencia World Cup 2026")
             .tab_source_note("Fuente: FIFA | Análisis: Álvaro Salinas")
         )
         Path("assets").mkdir(exist_ok=True)
@@ -29,7 +29,7 @@ def generate():
     except ImportError:
         # Fallback: pandas styling
         styled = (
-            top.style.set_caption("Top 5 Sedes — Asistencia World Cup 2026")
+            top.style.set_caption("Top 5 Sedes, Asistencia World Cup 2026")
             .set_table_styles(
                 [
                     {

@@ -1,6 +1,6 @@
 """ML Match Predictor del Mundial 2026 con evaluación honesta (sin leakage).
 
-LIMITACIONES (revisado en la auditoría 2026-10):
+LIMITACIONES (revisado en la revisión 2026-10):
 - Entrenado con 48 partidos (octavos -> final) de los Mundiales 2014, 2018 y
   2022 (data/historical.db NO incluye fase de grupos ni eliminatorias previas).
 - "rank_diff" usa un ranking HISTÓRICO derivado solo de partidos anteriores a

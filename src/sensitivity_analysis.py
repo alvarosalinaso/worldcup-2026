@@ -1,5 +1,5 @@
 """
-Analisis de sensibilidad — Impacto de variaciones en parametros clave.
+Analisis de sensibilidad, Impacto de variaciones en parametros clave.
 Monte Carlo simulation para escenarios de asistencia.
 """
 

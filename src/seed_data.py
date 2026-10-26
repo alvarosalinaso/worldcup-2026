@@ -1,6 +1,6 @@
 """Crea y puebla la base de datos SQLite del Mundial 2026.
 
-Procedencia (auditoría 2026-10): script escrito DESPUÉS del torneo
+Procedencia (revisión 2026-10): script escrito DESPUÉS del torneo
 (commit 2026-07-29; la final fue el 2026-07-19). Los fixtures, fechas,
 sedes, grupos, marcadores, penales y premios reproducen los resultados
 REALES del torneo, contrastados con openfootball (CC0,
@@ -9,7 +9,7 @@ data/worldcup_real.db) y la API de FIFA (data/contrast_ledger.md).
 Campos NO oficiales generados aquí:
 - matches.attendance: en fase de grupos es el aforo del estadio
   (en eliminatorias sí coincide con la asistencia oficial de FIFA).
-- goals.scorer en fase de grupos: nombres no verificados; la auditoría
+- goals.scorer en fase de grupos: nombres no verificados; la revisión
   encontró discrepancias vs openfootball/reportes de FIFA (los totales
   por partido sí cuadran con el marcador).
 """
